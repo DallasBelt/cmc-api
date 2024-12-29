@@ -31,7 +31,7 @@ export class AppointmentService {
   ) {}
 
   async create(createAppointmentDto: CreateAppointmentDto) {
-    const { startTime, endTime, patientId, medicId } = createAppointmentDto;
+    const { startTime, endTime, patientId, medicId } = createAppointmentDto; // description
     const patient = await this.patientService.findOne(patientId);
     const medic = await this.userRepository.findOne({
       where: { id: medicId },
@@ -57,6 +57,7 @@ export class AppointmentService {
         endTime,
         patient,
         medic,
+        // description,
       });
       await this.appointmentRepository.save(appointmentInfo);
       return appointmentInfo;

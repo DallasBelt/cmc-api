@@ -27,6 +27,9 @@ export class Appointment {
   @Column('text', { default: 'pending' })
   status: 'pending' | 'completed' | 'canceled';
 
+  // @Column('text')
+  // description: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

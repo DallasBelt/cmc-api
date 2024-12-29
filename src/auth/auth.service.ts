@@ -81,11 +81,29 @@ export class AuthService {
     };
   }
 
+  // async findAllMedics() {
+  //   return await this.userRepository
+  //     .createQueryBuilder('user')
+  //     .where('user.isActive = :isActive', { isActive: true })
+  //     .andWhere(':role = ANY(user.roles)', { role: 'medic' }) // If roles is an array
+  //     .getMany();
+  // }
+
   async findAllMedics() {
     return await this.userRepository
       .createQueryBuilder('user')
+      .innerJoinAndSelect('user.userInfo', 'userInfo')
       .where('user.isActive = :isActive', { isActive: true })
-      .andWhere(':role = ANY(user.roles)', { role: 'medic' }) // If roles is an array
+      .andWhere(':role = ANY(user.roles)', { role: 'medic' })
+      .select([
+        'user.id',
+        'user.email',
+        'user.isActive',
+        'user.roles',
+        'userInfo.firstName',
+        'userInfo.lastName',
+        'userInfo.dni',
+      ])
       .getMany();
   }
 

@@ -20,10 +20,10 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dtos';
 
 @Controller('appointment')
-@Auth(ValidRoles.admin, ValidRoles.medic, ValidRoles.assistant)
 export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
+  @Auth(ValidRoles.admin, ValidRoles.medic, ValidRoles.assistant)
   @Post()
   create(@Body() createAppointmentDto: CreateAppointmentDto) {
     return this.appointmentService.create(createAppointmentDto);
@@ -39,6 +39,7 @@ export class AppointmentController {
     return this.appointmentService.findOne(id);
   }
 
+  @Auth(ValidRoles.admin, ValidRoles.medic, ValidRoles.assistant)
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -47,6 +48,7 @@ export class AppointmentController {
     return this.appointmentService.update(id, updateAppointmentDto);
   }
 
+  @Auth(ValidRoles.admin, ValidRoles.medic, ValidRoles.assistant)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.appointmentService.remove(id);

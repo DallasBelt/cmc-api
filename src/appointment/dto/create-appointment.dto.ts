@@ -29,6 +29,11 @@ export class CreateAppointmentDto {
   @IsIn(['pending', 'completed', 'canceled'])
   status?: 'pending' | 'completed' | 'canceled';
 
+  // @ApiProperty()
+  // @IsOptional()
+  // @IsString()
+  // description?: string;
+
   @ApiProperty()
   @IsUUID()
   @IsNotEmpty()
