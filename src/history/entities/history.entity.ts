@@ -46,6 +46,12 @@ export class History {
   @Column('text')
   observations?: string;
 
+  @Column('text')
+  oxygenSaturation?: string;
+
+  @Column('text')
+  allergies?: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

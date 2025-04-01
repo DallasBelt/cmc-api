@@ -58,6 +58,16 @@ export class CreateHistoryDto {
   observations: string;
 
   @ApiProperty()
+  @IsString()
+  @IsOptional()
+  oxygenSaturation?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  allergies?: string;
+
+  @ApiProperty()
   @IsUUID()
   @IsNotEmpty()
   patientId: string;

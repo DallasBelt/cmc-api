@@ -49,10 +49,15 @@ export class AuthService {
       where: { email },
       select: { email: true, password: true, id: true, roles: true },
     });
-    if (!user)
-      throw new UnauthorizedException(`Credentials are not valid (email)`);
-    if (!bcrypt.compareSync(password, user.password))
-      throw new UnauthorizedException(`Credentials are not valid (password)`);
+    if (!user || !bcrypt.compareSync(password, user.password)) {
+      throw new UnauthorizedException(`Credentials are not valid.`);
+    }
+    if (user.roles[0] === 'user') {
+      throw new UnauthorizedException(`User is not authorized to login.`);
+    }
+    if (user.isActive === false) {
+      throw new UnauthorizedException(`User doesn't exist.`);
+    }
     return {
       id: user.id,
       email: user.email,
@@ -71,7 +76,7 @@ export class AuthService {
       data: await this.userRepository.find({
         skip: (page - 1) * limit,
         take: limit,
-        where: { isActive: true },
+        // where: { isActive: true },
       }),
       meta: {
         total: totalPages,
@@ -119,11 +124,9 @@ export class AuthService {
     const { email, role } = data;
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user)
-      throw new NotFoundException(`User with email: ${email} not found`);
+      throw new NotFoundException(`User with email: ${email} not found.`);
     if (role !== ValidRoles.medic && role !== ValidRoles.assistant) {
-      throw new NotFoundException(
-        `Rol with: ${role} doesn't exist, check other rol.`,
-      );
+      throw new NotFoundException(`Role with: ${role} doesn't exist.`);
     }
     const userUpdated = await this.userRepository.preload({
       id: user.id,
@@ -136,7 +139,7 @@ export class AuthService {
   async softDelete(email: string) {
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user)
-      throw new NotFoundException(`User with email: ${email} not found`);
+      throw new NotFoundException(`User with email: ${email} not found.`);
     const userUpdate = await this.userRepository.preload({
       id: user.id,
       isActive: !user.isActive,
@@ -147,7 +150,7 @@ export class AuthService {
 
   async remove(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`User with id: ${id} not found`);
+    if (!user) throw new NotFoundException(`User with id: ${id} not found.`);
     await this.userRepository.remove(user);
     return { message: `User ${user.email} was deleted.` };
   }
@@ -160,6 +163,6 @@ export class AuthService {
   private handleDBErrors(error: any): never {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
-    throw new InternalServerErrorException('Please check server logs');
+    throw new InternalServerErrorException('Please check server logs.');
   }
 }
