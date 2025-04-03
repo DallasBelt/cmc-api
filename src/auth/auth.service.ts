@@ -13,7 +13,7 @@ import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity';
 
-import { RoleDto, UserDto } from './dto';
+import { RoleDto, UserDto, LoginDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { ValidRoles } from './interfaces';
 import { PaginationDto } from 'src/common/dto/pagination.dtos';
@@ -43,21 +43,44 @@ export class AuthService {
     }
   }
 
-  async login(loginUserDto: UserDto) {
+  async login(loginUserDto: LoginDto) {
     const { email, password } = loginUserDto;
     const user = await this.userRepository.findOne({
       where: { email },
-      select: { email: true, password: true, id: true, roles: true },
+      select: {
+        email: true,
+        password: true,
+        id: true,
+        roles: true,
+        isActive: true,
+      },
     });
-    if (!user || !bcrypt.compareSync(password, user.password)) {
-      throw new UnauthorizedException(`Credentials are not valid.`);
+
+    if (!user) {
+      throw new UnauthorizedException('Credentials are not valid.');
     }
-    if (user.roles[0] === 'user') {
-      throw new UnauthorizedException(`User is not authorized to login.`);
+
+    if (!user.isActive) {
+      throw new UnauthorizedException({
+        errorCode: 'USER_INACTIVE',
+        message: 'User is inactive.',
+      });
     }
-    if (user.isActive === false) {
-      throw new UnauthorizedException(`User doesn't exist.`);
+
+    if (user.roles.includes('user')) {
+      throw new UnauthorizedException({
+        errorCode: 'USER_UNAUTHORIZED',
+        message: `User is not authorized.`,
+      });
     }
+
+    if (!bcrypt.compareSync(password, user.password)) {
+      throw new UnauthorizedException({
+        errorCode: 'BAD_CREDENTIALS',
+        message: `Check credentials.`,
+      });
+    }
+
     return {
       id: user.id,
       email: user.email,

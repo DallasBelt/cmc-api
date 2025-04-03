@@ -12,7 +12,7 @@ import {
 
 import { AuthService } from './auth.service';
 
-import { RoleDto, UserDto } from './dto';
+import { RoleDto, UserDto, LoginDto } from './dto';
 import { Auth } from './decorators';
 import { ValidRoles } from './interfaces';
 import { PaginationDto } from 'src/common/dto/pagination.dtos';
@@ -27,7 +27,7 @@ export class AuthController {
   }
 
   @Post('login')
-  loginUser(@Body() loginUserDto: UserDto) {
+  loginUser(@Body() loginUserDto: LoginDto) {
     return this.authService.login(loginUserDto);
   }
 
