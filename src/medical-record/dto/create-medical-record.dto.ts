@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
-export class CreateHistoryDto {
+export class CreateMedicalRecordDto {
   @ApiProperty()
   @IsString()
   @IsOptional()

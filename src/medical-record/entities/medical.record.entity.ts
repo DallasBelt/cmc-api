@@ -8,8 +8,8 @@ import {
 
 import { Patient } from 'src/patient/entities/patient.entity';
 
-@Entity('history')
-export class History {
+@Entity('medical-record')
+export class MedicalRecord {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -55,7 +55,7 @@ export class History {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @ManyToOne(() => Patient, (patient) => patient.history, {
+  @ManyToOne(() => Patient, (patient) => patient.medicalRecord, {
     onDelete: 'CASCADE',
   })
   patient: Patient;

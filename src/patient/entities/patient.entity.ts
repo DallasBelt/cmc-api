@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 import { User } from 'src/auth/entities/user.entity';
-import { History } from 'src/history/entities/history.entity';
+import { MedicalRecord } from 'src/medical-record/entities/medical.record.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 
 @Entity('patient')
@@ -48,8 +48,10 @@ export class Patient {
   @ManyToOne(() => User, (user) => user.patient, { onDelete: 'CASCADE' })
   medic: User;
 
-  @OneToMany(() => History, (history) => history.patient, { cascade: true })
-  history: History[];
+  @OneToMany(() => MedicalRecord, (medicalRecord) => medicalRecord.patient, {
+    cascade: true,
+  })
+  medicalRecord: MedicalRecord[];
 
   @OneToMany(() => Appointment, (appointment) => appointment.patient)
   appointments: Appointment[];
