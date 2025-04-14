@@ -2,10 +2,12 @@ import {
   Column,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+import { MedicSchedule } from './medic-schedule.entity';
 import { User } from 'src/auth/entities/user.entity';
 
 @Entity('medic-info')
@@ -19,16 +21,22 @@ export class MedicInfo {
   @Column('text', { unique: true })
   registry: string;
 
-  @Column('text')
-  checkIn: string;
+  // @Column('text')
+  // checkIn: string;
 
-  @Column('text')
-  checkOut: string;
+  // @Column('text')
+  // checkOut: string;
 
-  @Column('text', { array: true })
-  days: string[];
+  // @Column('text', { array: true })
+  // days: string[];
 
   @OneToOne(() => User, (user) => user.medicInfo, { onDelete: 'CASCADE' })
   @JoinColumn()
   user: User;
+
+  @OneToMany(() => MedicSchedule, (medicSchedule) => medicSchedule.medicInfo, {
+    cascade: true,
+    eager: true,
+  })
+  schedules: MedicSchedule[];
 }
