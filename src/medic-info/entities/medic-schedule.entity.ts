@@ -7,14 +7,14 @@ export class MedicSchedule {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
-  day: string; // Ej: 'monday', 'tuesday', etc.
+  @Column('text', { array: true })
+  days: string[];
 
   @Column('text')
-  checkIn: string; // Ej: '08:00'
+  checkIn: string;
 
   @Column('text')
-  checkOut: string; // Ej: '12:00'
+  checkOut: string;
 
   @ManyToOne(() => MedicInfo, (medicInfo) => medicInfo.schedules, {
     onDelete: 'CASCADE',

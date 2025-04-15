@@ -1,4 +1,3 @@
-// custom-days-validator.ts
 import {
   registerDecorator,
   ValidationOptions,
@@ -10,19 +9,19 @@ import {
 export class IsValidDaysConstraint implements ValidatorConstraintInterface {
   validate(days: string[]): boolean {
     const validDays = [
-      'lunes',
-      'martes',
-      'miercoles',
-      'jueves',
-      'viernes',
-      'sabado',
-      'domingo',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
     ];
     return days.every((day) => validDays.includes(day.toLowerCase()));
   }
 
   defaultMessage(): string {
-    return "Los días deben ser 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado' o 'domingo'";
+    return "Days must be one of: 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', or 'sunday'.";
   }
 }
 

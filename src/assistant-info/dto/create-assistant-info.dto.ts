@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
-import { IsValidDays } from 'src/common/decorators/days-validator.decorator';
+import { IsValidDays } from 'src/common/validators/is-valid-days.validator';
 
 export class CreateAssistantInfoDto {
   @ApiProperty()

@@ -1,13 +1,14 @@
-import { Controller, Post, Body, Patch, Get } from '@nestjs/common';
+import { Controller, Post, Patch, Body } from '@nestjs/common';
+
 import { Auth, GetUser } from 'src/auth/decorators';
 
 import { MedicInfo } from './entities/medic-info.entity';
+import { MedicInfoService } from './medic-info.service';
 import { User } from 'src/auth/entities/user.entity';
 
-import { MedicInfoService } from './medic-info.service';
-
+import { AddSchedulesDto } from './dto/add-schedules.dto';
 import { CreateMedicInfoDto } from './dto/create-medic-info.dto';
-import { UpdateMedicInfoDto } from './dto/update-medic-info.dto';
+import { CreateMedicScheduleDto } from './dto/create-medic-schedule.dto';
 import { ValidRoles } from 'src/auth/interfaces';
 
 @Controller('medic-info')
@@ -24,17 +25,9 @@ export class MedicInfoController {
     return this.medicInfoService.create(user, createMedicInfoDto);
   }
 
-  @Get()
-  findMedicInfoByUser(@GetUser() user: User): Promise<MedicInfo> {
-    return this.medicInfoService.findMedicInfoByUser(user);
-  }
-
-  @Patch()
+  @Patch('schedules')
   @Auth(ValidRoles.medic)
-  update(
-    @GetUser() user: User,
-    @Body() updateMedicInfoDto: UpdateMedicInfoDto,
-  ): Promise<MedicInfo> {
-    return this.medicInfoService.update(user, updateMedicInfoDto);
+  addSchedules(@GetUser() user: User, @Body() body: AddSchedulesDto) {
+    return this.medicInfoService.addSchedules(user, body.schedules);
   }
 }
