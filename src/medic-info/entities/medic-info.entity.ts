@@ -21,15 +21,6 @@ export class MedicInfo {
   @Column('text', { unique: true })
   registry: string;
 
-  // @Column('text')
-  // checkIn: string;
-
-  // @Column('text')
-  // checkOut: string;
-
-  // @Column('text', { array: true })
-  // days: string[];
-
   @OneToOne(() => User, (user) => user.medicInfo, { onDelete: 'CASCADE' })
   @JoinColumn()
   user: User;

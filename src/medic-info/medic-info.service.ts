@@ -83,9 +83,7 @@ export class MedicInfoService {
       return medicInfo;
     } catch (error) {
       this.logger.error(error);
-      if (error.code === '23505') {
-        throw new BadRequestException(error.detail);
-      }
+
       throw new InternalServerErrorException(
         'Unexpected error while creating medic profile.',
       );
