@@ -1,8 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsNotEmpty,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateMedicScheduleDto } from './create-medic-schedule.dto';
-import { IsUniqueRegistry } from 'src/common/validators';
 
 export class CreateMedicInfoDto {
   @ApiProperty()
@@ -13,13 +18,12 @@ export class CreateMedicInfoDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  @IsUniqueRegistry({ message: 'Medical registry already in use.' })
   registry: string;
 
   @ApiProperty({ type: [CreateMedicScheduleDto] })
-  @IsArray()
+  @ArrayNotEmpty({ message: 'At least one schedule is required.' })
+  @IsArray({ message: 'The schedule must be an array.' })
   @ValidateNested({ each: true })
   @Type(() => CreateMedicScheduleDto)
-  @IsNotEmpty()
   schedules: CreateMedicScheduleDto[];
 }

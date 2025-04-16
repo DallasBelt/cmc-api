@@ -43,6 +43,13 @@ export class MedicInfoService {
         throw new BadRequestException('User already has a medic profile.');
       }
 
+      const existingRegistry = await this.medicInfoRepository.findOne({
+        where: { registry: createMedicInfoDto.registry },
+      });
+      if (existingRegistry) {
+        throw new BadRequestException('Medical registry is already in use.');
+      }
+
       const schedules = createMedicInfoDto.schedules;
 
       if (!schedules || schedules.length === 0) {
