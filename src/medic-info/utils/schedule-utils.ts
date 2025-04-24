@@ -1,5 +1,64 @@
 import { CreateMedicScheduleDto } from '../dto/create-medic-schedule.dto';
 
+type PartialScheduleWithId = {
+  id: string;
+  checkIn?: string;
+  checkOut?: string;
+  days?: string[];
+};
+
+export function isDuplicateSchedule(
+  scheduleToEdit: PartialScheduleWithId,
+  existingSchedules: PartialScheduleWithId[],
+  scheduleId: string,
+): boolean {
+  if (
+    !scheduleToEdit.checkIn ||
+    !scheduleToEdit.checkOut ||
+    !scheduleToEdit.days
+  ) {
+    return false; // No se puede comparar si faltan datos
+  }
+
+  return existingSchedules.some((s) => {
+    if (s.id === scheduleId) return false;
+
+    return (
+      s.checkIn === scheduleToEdit.checkIn &&
+      s.checkOut === scheduleToEdit.checkOut &&
+      Array.isArray(s.days) &&
+      s.days.length === scheduleToEdit.days.length &&
+      s.days.every((day) => scheduleToEdit.days!.includes(day))
+    );
+  });
+}
+
+export function isOverlappingSchedule(
+  scheduleToEdit: PartialScheduleWithId,
+  existingSchedules: PartialScheduleWithId[],
+  scheduleId: string,
+): boolean {
+  if (
+    !scheduleToEdit.checkIn ||
+    !scheduleToEdit.checkOut ||
+    !scheduleToEdit.days
+  ) {
+    return false; // No hay datos para validar solapamiento
+  }
+
+  return existingSchedules.some((s) => {
+    if (s.id === scheduleId || !s.checkIn || !s.checkOut || !s.days)
+      return false;
+
+    const sharesDay = scheduleToEdit.days!.some((day) => s.days!.includes(day));
+    const timeOverlap =
+      scheduleToEdit.checkIn! < s.checkOut &&
+      s.checkIn < scheduleToEdit.checkOut!;
+
+    return sharesDay && timeOverlap;
+  });
+}
+
 export function hasOverlappingSchedules(
   schedules: CreateMedicScheduleDto[],
 ): boolean {

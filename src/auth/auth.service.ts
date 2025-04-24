@@ -67,13 +67,6 @@ export class AuthService {
       });
     }
 
-    if (user.roles.includes('user')) {
-      throw new UnauthorizedException({
-        errorCode: 'USER_UNAUTHORIZED',
-        message: `User is not authorized.`,
-      });
-    }
-
     if (!bcrypt.compareSync(password, user.password)) {
       throw new UnauthorizedException({
         errorCode: 'BAD_CREDENTIALS',

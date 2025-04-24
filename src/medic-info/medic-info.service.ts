@@ -13,10 +13,13 @@ import { MedicSchedule } from './entities/medic-schedule.entity';
 import { User } from 'src/auth/entities/user.entity';
 
 import { CreateMedicInfoDto } from './dto/create-medic-info.dto';
-import { CreateMedicScheduleDto } from './dto/create-medic-schedule.dto';
 import { UpdateMedicInfoDto } from './dto/update-medic-info.dto';
+import { CreateMedicScheduleDto } from './dto/create-medic-schedule.dto';
+import { UpdateMedicScheduleDto } from './dto/update-medic-schedule.dto';
 
 import {
+  isDuplicateSchedule,
+  isOverlappingSchedule,
   hasDuplicateSchedules,
   hasOverlappingSchedules,
 } from './utils/schedule-utils';
@@ -125,5 +128,117 @@ export class MedicInfoService {
     return this.medicScheduleRepository.find({
       where: { medicInfo: { id: medicInfo.id } },
     });
+  }
+
+  async findMedicInfoByUser(user: User) {
+    const medicInfo = await this.medicInfoRepository.findOne({
+      where: { user: user },
+      relations: ['schedules'],
+    });
+
+    if (!medicInfo) {
+      throw new NotFoundException(`User with id: ${user.id} not found.`);
+    }
+
+    return medicInfo;
+  }
+
+  async updateMedicInfo(user: User, dto: UpdateMedicInfoDto) {
+    const medicInfo = await this.medicInfoRepository.findOne({
+      where: { user: { id: user.id } },
+    });
+
+    if (!medicInfo) {
+      throw new NotFoundException('Medic profile not found.');
+    }
+
+    const updated = this.medicInfoRepository.merge(medicInfo, dto);
+    return this.medicInfoRepository.save(updated);
+  }
+
+  async updateSchedule(
+    scheduleId: string,
+    user: User,
+    dto: UpdateMedicScheduleDto,
+  ) {
+    const schedule = await this.medicScheduleRepository.findOne({
+      where: {
+        id: scheduleId,
+        medicInfo: { user: { id: user.id } },
+      },
+      relations: ['medicInfo', 'medicInfo.user'],
+    });
+
+    if (!schedule) {
+      throw new NotFoundException(
+        `Schedule with id ${scheduleId} not found for this user.`,
+      );
+    }
+
+    const updatedSchedule = this.medicScheduleRepository.merge(schedule, dto);
+
+    if (updatedSchedule.checkIn >= updatedSchedule.checkOut) {
+      throw new BadRequestException('checkIn must be earlier than checkOut.');
+    }
+
+    const otherSchedules = await this.medicScheduleRepository.find({
+      where: {
+        medicInfo: { id: schedule.medicInfo.id },
+      },
+    });
+
+    if (
+      isDuplicateSchedule(
+        { ...dto, id: scheduleId },
+        otherSchedules,
+        scheduleId,
+      )
+    ) {
+      throw new BadRequestException('This schedule is already registered.');
+    }
+
+    if (
+      isOverlappingSchedule(
+        { ...dto, id: scheduleId },
+        otherSchedules,
+        scheduleId,
+      )
+    ) {
+      throw new BadRequestException('Updated schedule overlaps with another.');
+    }
+
+    return this.medicScheduleRepository.save(updatedSchedule);
+  }
+
+  async deleteScheduleById(scheduleId: string, user: User) {
+    const schedule = await this.medicScheduleRepository.findOne({
+      where: {
+        id: scheduleId,
+        medicInfo: { user: { id: user.id } },
+      },
+      relations: ['medicInfo', 'medicInfo.user'],
+    });
+
+    if (!schedule) {
+      throw new NotFoundException(
+        `No schedule found with id: ${scheduleId} for this user.`,
+      );
+    }
+
+    const totalSchedules = await this.medicScheduleRepository.count({
+      where: {
+        medicInfo: { id: schedule.medicInfo.id },
+      },
+    });
+
+    if (totalSchedules <= 1) {
+      throw new BadRequestException(
+        'You must have at least one schedule. Cannot delete the last one.',
+      );
+    }
+
+    await this.medicScheduleRepository.remove(schedule);
+
+    return { message: 'Schedule deleted successfully.' };
   }
 }

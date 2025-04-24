@@ -10,11 +10,9 @@ import {
 export class IsValidTimeSlotConstraint implements ValidatorConstraintInterface {
   validate(time: string, args: ValidationArguments): boolean {
     const isCheckIn = args.property === 'checkIn';
-    const allowedHours = isCheckIn
-      ? { min: 6, max: 19 } // 06:00 a 19:00
-      : { min: 7, max: 20 }; // 07:00 a 20:00
+    const allowedHours = isCheckIn ? { min: 6, max: 19 } : { min: 7, max: 20 };
 
-    const match = /^([01]\d|2[0-3]):(00|30)$/.exec(time);
+    const match = /^([01]\d|2[0-3]):(00|15|30|45)$/.exec(time);
     if (!match) return false;
 
     const hour = parseInt(match[1], 10);
@@ -24,7 +22,7 @@ export class IsValidTimeSlotConstraint implements ValidatorConstraintInterface {
   defaultMessage(args: ValidationArguments): string {
     const isCheckIn = args.property === 'checkIn';
     const [start, end] = isCheckIn ? ['06:00', '19:00'] : ['07:00', '20:00'];
-    return `${args.property} must be in 30-minute intervals between ${start} and ${end}.`;
+    return `${args.property} must be in 15-minute intervals between ${start} and ${end}.`;
   }
 }
 
