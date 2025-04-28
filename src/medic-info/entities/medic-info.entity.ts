@@ -16,7 +16,7 @@ export class MedicInfo {
   id: string;
 
   @Column('text', { array: true })
-  speciality: string[];
+  speciality: string;
 
   @Column('text', { unique: true })
   registry: string;

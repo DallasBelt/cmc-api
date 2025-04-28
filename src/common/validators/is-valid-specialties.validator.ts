@@ -12,13 +12,14 @@ import { specialties } from 'src/constants/specialties';
 export class IsValidSpecialtiesConstraint
   implements ValidatorConstraintInterface
 {
-  validate(values: string[], _args: ValidationArguments): boolean {
+  validate(value: string, _args: ValidationArguments): boolean {
+    if (typeof value !== 'string') return false;
     const validIds = specialties.map((s) => s.id);
-    return values.every((val) => validIds.includes(val));
+    return validIds.includes(value);
   }
 
   defaultMessage(): string {
-    return 'One or more specialties are invalid.';
+    return 'Invalid specialty.';
   }
 }
 

@@ -12,10 +12,10 @@ import { IsValidSpecialties } from 'src/common/validators/is-valid-specialties.v
 
 export class CreateMedicInfoDto {
   @ApiProperty()
-  @IsArray()
-  @ArrayNotEmpty({ message: 'At least one specialty must be selected.' })
-  @IsValidSpecialties({ message: 'One or more specialties are invalid.' })
-  speciality: string[];
+  @IsString({ message: 'Specialty must be a string.' })
+  @IsNotEmpty({ message: 'Specialty is required.' })
+  @IsValidSpecialties({ message: 'Invalid specialty.' })
+  speciality: string;
 
   @ApiProperty()
   @IsNotEmpty({ message: 'Registry is required.' })
