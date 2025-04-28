@@ -48,11 +48,12 @@ export class AuthService {
     const user = await this.userRepository.findOne({
       where: { email },
       select: {
+        id: true,
         email: true,
         password: true,
-        id: true,
         roles: true,
         isActive: true,
+        isInfoComplete: true,
       },
     });
 
@@ -78,6 +79,7 @@ export class AuthService {
       id: user.id,
       email: user.email,
       roles: user.roles,
+      isInfoComplete: user.isInfoComplete,
       token: this.getJwtToken({ id: user.id }),
     };
   }

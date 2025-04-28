@@ -25,11 +25,14 @@ export class User {
   @Column('text', { select: false })
   password: string;
 
-  @Column('bool', { default: false })
-  isActive: boolean;
-
   @Column('text', { array: true, default: ['user'] })
   roles: string[];
+
+  @Column({ default: false })
+  isInfoComplete: boolean;
+
+  @Column('bool', { default: false })
+  isActive: boolean;
 
   @OneToOne(() => UserInfo, (userInfo) => userInfo.user, { cascade: true })
   userInfo: UserInfo;
