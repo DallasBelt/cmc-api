@@ -53,7 +53,7 @@ export class AuthService {
         password: true,
         roles: true,
         isActive: true,
-        isInfoComplete: true,
+        isProfileComplete: true,
       },
     });
 
@@ -79,8 +79,24 @@ export class AuthService {
       id: user.id,
       email: user.email,
       roles: user.roles,
-      isInfoComplete: user.isInfoComplete,
+      isProfileComplete: user.isProfileComplete,
       token: this.getJwtToken({ id: user.id }),
+    };
+  }
+
+  async completeProfile(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    user.isProfileComplete = true;
+    await this.userRepository.save(user);
+
+    return {
+      message: 'Profile completed successfully.',
+      userId: user.id,
     };
   }
 

@@ -15,7 +15,7 @@ export class MedicInfo {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text', { array: true })
+  @Column('text')
   speciality: string;
 
   @Column('text', { unique: true })

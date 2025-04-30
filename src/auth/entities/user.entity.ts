@@ -29,7 +29,7 @@ export class User {
   roles: string[];
 
   @Column({ default: false })
-  isInfoComplete: boolean;
+  isProfileComplete: boolean;
 
   @Column('bool', { default: false })
   isActive: boolean;
