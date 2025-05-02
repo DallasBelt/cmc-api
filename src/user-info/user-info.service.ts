@@ -51,7 +51,7 @@ export class UserInfoService {
       where: { user: user },
     });
     if (!findUserInfoByUser)
-      throw new NotFoundException(`User with id: ${user.id} not found`);
+      throw new NotFoundException(`User with id: ${user.id} not found.`);
     return findUserInfoByUser;
   }
 
@@ -62,7 +62,7 @@ export class UserInfoService {
       ...updateUserInfoDto,
     });
     if (!userInfoToUpdate)
-      throw new NotFoundException(`User with id: ${user.id} not found`);
+      throw new NotFoundException(`User with id: ${user.id} not found.`);
     await this.userInfoRepository.save(userInfoToUpdate);
     return userInfoToUpdate;
   }
@@ -70,8 +70,6 @@ export class UserInfoService {
   private handleExceptions(error: any): never {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
-    throw new InternalServerErrorException(
-      'Unexpected error, check server logs',
-    );
+    throw new InternalServerErrorException('Unexpected error.');
   }
 }
