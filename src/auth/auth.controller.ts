@@ -8,10 +8,8 @@ import {
   Patch,
   Post,
   Query,
-  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { RequestWithUser } from './interfaces/request-with-user.interface';
 
 import { AuthService } from './auth.service';
 import { LoginDto, RoleDto, UserDto } from './dto';
@@ -34,15 +32,6 @@ export class AuthController {
   @ApiOperation({ summary: 'Login user.' })
   loginUser(@Body() loginUserDto: LoginDto) {
     return this.authService.login(loginUserDto);
-  }
-
-  @Patch('complete-profile')
-  @Auth(ValidRoles.medic, ValidRoles.assistant)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Mark profile completion.' })
-  completeProfile(@Req() req: RequestWithUser) {
-    const userId = req.user.id;
-    return this.authService.completeProfile(userId);
   }
 
   @Get('all')
