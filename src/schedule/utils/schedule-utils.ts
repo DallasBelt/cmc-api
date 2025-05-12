@@ -1,4 +1,4 @@
-import { CreateMedicScheduleDto } from '../dto/create-medic-schedule.dto';
+import { CreateScheduleDto } from '../dto/create-schedule.dto';
 
 type PartialScheduleWithId = {
   id: string;
@@ -17,7 +17,7 @@ export function isDuplicateSchedule(
     !scheduleToEdit.checkOut ||
     !scheduleToEdit.days
   ) {
-    return false; // No se puede comparar si faltan datos
+    return false; // Can't compare if data is missing
   }
 
   return existingSchedules.some((s) => {
@@ -43,7 +43,7 @@ export function isOverlappingSchedule(
     !scheduleToEdit.checkOut ||
     !scheduleToEdit.days
   ) {
-    return false; // No hay datos para validar solapamiento
+    return false; // No data to validate overlapping
   }
 
   return existingSchedules.some((s) => {
@@ -60,7 +60,7 @@ export function isOverlappingSchedule(
 }
 
 export function hasOverlappingSchedules(
-  schedules: CreateMedicScheduleDto[],
+  schedules: CreateScheduleDto[],
 ): boolean {
   for (let i = 0; i < schedules.length; i++) {
     for (let j = i + 1; j < schedules.length; j++) {
@@ -78,13 +78,11 @@ export function hasOverlappingSchedules(
   return false;
 }
 
-export function hasDuplicateSchedules(
-  schedules: CreateMedicScheduleDto[],
-): boolean {
+export function hasDuplicateSchedules(schedules: CreateScheduleDto[]): boolean {
   const seen = new Set();
 
   for (const schedule of schedules) {
-    // Creamos una "firma" única basada en checkIn, checkOut y días ordenados
+    // Create a unique signature based on checkIn, checkout and ordered days
     const signature = `${schedule.checkIn}|${schedule.checkOut}|${schedule.days
       .sort()
       .join(',')}`;

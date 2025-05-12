@@ -6,7 +6,7 @@ import {
   IsValidTimeSlot,
 } from 'src/common/validators';
 
-export class CreateMedicScheduleDto {
+export class CreateScheduleDto {
   @ApiProperty({
     example: '08:00',
     description: 'Check-in time with format HH:mm',

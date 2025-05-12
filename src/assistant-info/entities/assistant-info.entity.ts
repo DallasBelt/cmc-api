@@ -2,11 +2,13 @@ import {
   Column,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { User } from 'src/auth/entities/user.entity';
+import { Schedule } from 'src/schedule/entities/schedule.entity';
 
 @Entity('assistant-info')
 export class AssistantInfo {
@@ -29,4 +31,7 @@ export class AssistantInfo {
   @OneToOne(() => User, (user) => user.assistant, { onDelete: 'CASCADE' })
   @JoinColumn()
   medic: User;
+
+  @OneToMany(() => Schedule, (schedule) => schedule.assistantInfo)
+  schedules: Schedule[];
 }

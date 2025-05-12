@@ -1,4 +1,6 @@
 import { Controller, Post, Body, Patch, Get } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+
 import { Auth, GetUser } from 'src/auth/decorators';
 
 import { UserInfo } from './entities/user-info.entity';
@@ -9,6 +11,7 @@ import { UserInfoService } from './user-info.service';
 import { CreateUserInfoDto } from './dto/create-user-info.dto';
 import { UpdateUserInfoDto } from './dto/update-user-info.dto';
 
+@ApiTags('user-info')
 @Controller('user-info')
 @Auth()
 export class UserInfoController {

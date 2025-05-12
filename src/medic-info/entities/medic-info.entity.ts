@@ -7,27 +7,24 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { MedicSchedule } from './medic-schedule.entity';
 import { User } from 'src/auth/entities/user.entity';
+import { Schedule } from 'src/schedule/entities/schedule.entity';
 
 @Entity('medic-info')
 export class MedicInfo {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
-  speciality: string;
-
   @Column('text', { unique: true })
   registry: string;
+
+  @Column('text')
+  speciality: string;
 
   @OneToOne(() => User, (user) => user.medicInfo, { onDelete: 'CASCADE' })
   @JoinColumn()
   user: User;
 
-  @OneToMany(() => MedicSchedule, (medicSchedule) => medicSchedule.medicInfo, {
-    cascade: true,
-    eager: true,
-  })
-  schedules: MedicSchedule[];
+  @OneToMany(() => Schedule, (schedule) => schedule.assistantInfo)
+  schedules: Schedule[];
 }

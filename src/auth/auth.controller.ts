@@ -19,7 +19,7 @@ import { Auth } from './decorators';
 import { ValidRoles } from './interfaces';
 import { PaginationDto } from 'src/common/dto/pagination.dtos';
 
-@ApiTags('Auth')
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

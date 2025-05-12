@@ -1,9 +1,6 @@
-import { IsNotEmpty, IsString } from 'class-validator';
-import { IsValidSpecialties } from 'src/common/validators/is-valid-specialties.validator';
+import { OmitType } from '@nestjs/swagger';
+import { CreateMedicInfoDto } from './create-medic-info.dto';
 
-export class UpdateMedicInfoDto {
-  @IsString({ message: 'Specialty must be a string.' })
-  @IsNotEmpty({ message: 'Specialty is required.' })
-  @IsValidSpecialties({ message: 'Invalid specialty.' })
-  speciality: string;
-}
+export class UpdateMedicInfoDto extends OmitType(CreateMedicInfoDto, [
+  'registry',
+] as const) {}
