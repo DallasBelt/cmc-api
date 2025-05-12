@@ -80,22 +80,6 @@ export class AuthService {
     };
   }
 
-  async completeProfile(userId: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-
-    if (!user) {
-      throw new NotFoundException('User not found.');
-    }
-
-    user.isProfileComplete = true;
-    await this.userRepository.save(user);
-
-    return {
-      message: 'Profile completed successfully.',
-      userId: user.id,
-    };
-  }
-
   async findAll(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     const totalPages = await this.userRepository.count({

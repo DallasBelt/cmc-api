@@ -28,9 +28,6 @@ export class User {
   @Column('text', { array: true, default: ['user'] })
   roles: string[];
 
-  @Column({ default: false })
-  isProfileComplete: boolean;
-
   @Column('bool', { default: false })
   isActive: boolean;
 
