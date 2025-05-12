@@ -49,11 +49,9 @@ export class AuthService {
       where: { email },
       select: {
         id: true,
-        email: true,
         password: true,
         roles: true,
         isActive: true,
-        isProfileComplete: true,
       },
     });
 
@@ -77,9 +75,7 @@ export class AuthService {
 
     return {
       id: user.id,
-      email: user.email,
       roles: user.roles,
-      isProfileComplete: user.isProfileComplete,
       token: this.getJwtToken({ id: user.id }),
     };
   }
@@ -110,7 +106,6 @@ export class AuthService {
       data: await this.userRepository.find({
         skip: (page - 1) * limit,
         take: limit,
-        // where: { isActive: true },
       }),
       meta: {
         total: totalPages,
@@ -119,14 +114,6 @@ export class AuthService {
       },
     };
   }
-
-  // async findAllMedics() {
-  //   return await this.userRepository
-  //     .createQueryBuilder('user')
-  //     .where('user.isActive = :isActive', { isActive: true })
-  //     .andWhere(':role = ANY(user.roles)', { role: 'medic' }) // If roles is an array
-  //     .getMany();
-  // }
 
   async findAllMedics() {
     return await this.userRepository
