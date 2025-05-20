@@ -16,10 +16,9 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
 import {
   hasDuplicateSchedules,
-  hasOverlappingSchedules,
   isDuplicateSchedule,
-  isOverlappingSchedule,
 } from './utils/schedule-utils';
+import { GetUser } from 'src/auth/decorators';
 
 @Injectable()
 export class ScheduleService {
@@ -34,35 +33,8 @@ export class ScheduleService {
     private readonly assistantInfoRepo: Repository<AssistantInfo>,
   ) {}
 
-  async create(dto: CreateScheduleDto, user: User) {
-    const schedules: DeepPartial<Schedule>[] = [dto];
-    await this.assignOwner(schedules, user);
-    await this.validateConflicts(user, [dto]);
-
-    const schedule = this.scheduleRepo.create(schedules[0]);
-    const saved = await this.scheduleRepo.save(schedule);
-
-    return {
-      message: 'Schedule successfully created.',
-      schedule: saved,
-    };
-  }
-
-  async createMany(dtos: CreateScheduleDto[], user: User) {
-    const partials: DeepPartial<Schedule>[] = [...dtos];
-    await this.assignOwner(partials, user);
-    await this.validateConflicts(user, dtos);
-
-    const schedules = this.scheduleRepo.create(partials);
-    const saved = await this.scheduleRepo.save(schedules);
-
-    return {
-      message: 'Schedules successfully created.',
-      schedules: saved,
-    };
-  }
-
-  private async assignOwner(dtos: DeepPartial<Schedule>[], user: User) {
+  async create(dtos: CreateScheduleDto[], user: User) {
+    // Verify that the user has a profile
     const medicInfo = await this.medicInfoRepo.findOne({
       where: { user: { id: user.id } },
     });
@@ -72,67 +44,49 @@ export class ScheduleService {
     });
 
     if (!medicInfo && !assistantInfo) {
-      throw new BadRequestException('User must create a profile first.');
+      throw new BadRequestException(
+        'User must have a profile to create a schedule.',
+      );
     }
 
-    for (const dto of dtos) {
-      if (medicInfo) dto.medicInfo = medicInfo;
-      else if (assistantInfo) dto.assistantInfo = assistantInfo;
+    const schedules: DeepPartial<Schedule>[] = [...dtos];
+
+    // Verify duplicate schedules in the request's body
+    if (hasDuplicateSchedules(schedules)) {
+      throw new BadRequestException(
+        'Duplicate schedules found in the request body.',
+      );
     }
-  }
 
-  private async validateConflicts(
-    user: User,
-    newSchedules: CreateScheduleDto[],
-  ) {
-    const medicInfo = await this.medicInfoRepo.findOne({
-      where: { user: { id: user.id } },
-    });
-
-    const assistantInfo = await this.assistantInfoRepo.findOne({
-      where: { user: { id: user.id } },
-    });
-
-    const ownerId = medicInfo?.id ?? assistantInfo?.id;
-    const isMedic = Boolean(medicInfo);
-
+    // Get existing schedules
     const existingSchedules = await this.scheduleRepo.find({
-      where: isMedic
-        ? { medicInfo: { id: ownerId } }
-        : { assistantInfo: { id: ownerId } },
+      where: medicInfo
+        ? { medicInfo: { id: medicInfo.id } }
+        : { assistantInfo: { id: assistantInfo.id } },
     });
 
-    // Validate new schedules
-    if (hasDuplicateSchedules(newSchedules)) {
-      throw new BadRequestException('Schedules are duplicated.');
+    // Verify duplicate schedules in the database
+    if (isDuplicateSchedule(schedules, existingSchedules)) {
+      throw new BadRequestException('These schedules already exist.');
     }
 
-    if (hasOverlappingSchedules(newSchedules)) {
-      throw new BadRequestException('Schedules are overlapping.');
-    }
-
-    // Validate against existing schedules
-    for (const schedule of newSchedules) {
-      if (
-        isDuplicateSchedule(
-          { ...schedule, id: 'new' },
-          existingSchedules,
-          'new',
-        )
-      ) {
-        throw new BadRequestException('Schedule already exists.');
-      }
-
-      if (
-        isOverlappingSchedule(
-          { ...schedule, id: 'new' },
-          existingSchedules,
-          'new',
-        )
-      ) {
-        throw new BadRequestException('Schedule overlaps with existing one.');
+    // Assign an id for each schedule
+    for (const schedule of schedules) {
+      if (medicInfo) {
+        schedule.medicInfo = medicInfo;
+      } else if (assistantInfo) {
+        schedule.assistantInfo = assistantInfo;
       }
     }
+
+    // Create and save the schedules
+    const createdSchedules = this.scheduleRepo.create(schedules);
+    const savedSchedules = await this.scheduleRepo.save(createdSchedules);
+
+    return {
+      message: 'Schedules successfully created.',
+      schedules: savedSchedules,
+    };
   }
 
   async findByParent(
@@ -169,7 +123,8 @@ export class ScheduleService {
     return [];
   }
 
-  async update(id: string, dto: UpdateScheduleDto) {
+  async update(id: string, dto: UpdateScheduleDto, @GetUser() user: User) {
+    // Verify that the schedules exists in the database
     const existing = await this.scheduleRepo.findOne({
       where: { id },
       relations: ['medicInfo', 'assistantInfo'],
@@ -179,23 +134,44 @@ export class ScheduleService {
       throw new NotFoundException('The schedule does not exist.');
     }
 
-    const ownerId = existing.medicInfo?.id ?? existing.assistantInfo?.id;
-    const isMedic = Boolean(existing.medicInfo);
-
-    const allSchedules = await this.scheduleRepo.find({
-      where: isMedic
-        ? { medicInfo: { id: ownerId } }
-        : { assistantInfo: { id: ownerId } },
+    const medicInfo = await this.medicInfoRepo.findOne({
+      where: { user: { id: user.id } },
     });
 
-    if (isDuplicateSchedule({ ...dto, id }, allSchedules, id)) {
-      throw new BadRequestException('The schedule is duplicated.');
+    const assistantInfo = await this.assistantInfoRepo.findOne({
+      where: { user: { id: user.id } },
+    });
+
+    if (!medicInfo && !assistantInfo) {
+      throw new BadRequestException(
+        'User must have a profile to update a schedule.',
+      );
     }
 
-    if (isOverlappingSchedule({ ...dto, id }, allSchedules, id)) {
-      throw new BadRequestException('The schedule is overlapping.');
+    // Get existing schedules
+    const allSchedules = await this.scheduleRepo.find({
+      where: medicInfo
+        ? { medicInfo: { id: medicInfo.id } }
+        : { assistantInfo: { id: assistantInfo.id } },
+    });
+
+    // Validate duplicates
+    const filteredSchedules = allSchedules.filter(
+      (schedule) => schedule.id !== id, // Don't compare current schedule
+    );
+
+    if (isDuplicateSchedule([dto], filteredSchedules)) {
+      throw new BadRequestException('This schedule already exists.');
     }
 
+    // Assign an id to the updated schedule
+    if (medicInfo) {
+      existing.medicInfo = medicInfo;
+    } else if (assistantInfo) {
+      existing.assistantInfo = assistantInfo;
+    }
+
+    // Update the schedule
     await this.scheduleRepo.update(id, dto);
 
     return {

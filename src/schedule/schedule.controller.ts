@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -28,14 +29,8 @@ export class ScheduleController {
   @Post()
   create(
     @GetUser() user: User,
-    @Body() body: CreateScheduleDto | CreateScheduleDto[],
-  ): Promise<
-    | { message: string; schedule: Schedule }
-    | { message: string; schedules: Schedule[] }
-  > {
-    if (Array.isArray(body)) {
-      return this.scheduleService.createMany(body, user);
-    }
+    @Body() body: CreateScheduleDto[],
+  ): Promise<{ message: string; schedules: Schedule[] }> {
     return this.scheduleService.create(body, user);
   }
 
@@ -49,8 +44,12 @@ export class ScheduleController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateScheduleDto) {
-    return this.scheduleService.update(id, dto);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateScheduleDto,
+    user: User,
+  ) {
+    return this.scheduleService.update(id, dto, user);
   }
 
   @Delete(':id')
