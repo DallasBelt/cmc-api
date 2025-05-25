@@ -1,16 +1,9 @@
-import {
-  Check,
-  Column,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { MedicInfo } from 'src/medic-info/entities/medic-info.entity';
 import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity';
 
-@Entity('schedules')
-@Check(`"checkIn" < "checkOut"`)
+@Entity('schedule')
 export class Schedule {
   @PrimaryGeneratedColumn('uuid')
   id: string;

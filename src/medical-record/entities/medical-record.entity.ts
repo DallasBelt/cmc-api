@@ -8,7 +8,7 @@ import {
 
 import { Patient } from 'src/patient/entities/patient.entity';
 
-@Entity('medical-record')
+@Entity('medical_record')
 export class MedicalRecord {
   @PrimaryGeneratedColumn('uuid')
   id: string;

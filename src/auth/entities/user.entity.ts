@@ -14,7 +14,7 @@ import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity
 import { Patient } from 'src/patient/entities/patient.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 
-@Entity('users')
+@Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;

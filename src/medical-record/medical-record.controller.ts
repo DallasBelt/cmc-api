@@ -11,7 +11,7 @@ import {
 
 import { Auth } from 'src/auth/decorators';
 
-import { MedicalRecordService } from './medical.record.service';
+import { MedicalRecordService } from './medical-record.service';
 
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';

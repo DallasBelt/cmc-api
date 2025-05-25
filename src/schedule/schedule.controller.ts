@@ -20,8 +20,8 @@ import { ScheduleService } from './schedule.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
-@ApiTags('schedules')
-@Controller('schedules')
+@ApiTags('schedule')
+@Controller('schedule')
 @Auth(ValidRoles.medic, ValidRoles.assistant)
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
@@ -47,7 +47,7 @@ export class ScheduleController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateScheduleDto,
-    user: User,
+    @GetUser() user: User,
   ) {
     return this.scheduleService.update(id, dto, user);
   }

@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { MedicalRecord } from './entities/medical.record.entity';
+import { MedicalRecord } from './entities/medical-record.entity';
 
 import { PatientService } from '../patient/patient.service';
 

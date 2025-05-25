@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 import { User } from 'src/auth/entities/user.entity';
-import { MedicalRecord } from 'src/medical-record/entities/medical.record.entity';
+import { MedicalRecord } from 'src/medical-record/entities/medical-record.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 
 @Entity('patient')

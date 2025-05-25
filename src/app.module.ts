@@ -9,7 +9,7 @@ import { MedicInfoModule } from './medic-info/medic-info.module';
 import { AssistantInfoModule } from './assistant-info/assistant-info.module';
 import { ScheduleModule } from './schedule/schedule.module';
 import { PatientModule } from './patient/patient.module';
-import { MedicalRecordModule } from './medical-record/medical.record.module';
+import { MedicalRecordModule } from './medical-record/medical-record.module';
 import { AppointmentModule } from './appointment/appointment.module';
 
 @Module({

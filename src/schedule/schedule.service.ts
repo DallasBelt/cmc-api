@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,10 +16,11 @@ import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
 import {
-  hasDuplicateSchedules,
-  isDuplicateSchedule,
+  hasDuplicateShifts,
+  isDuplicateShift,
+  hasOverlappingShifts,
+  isOverlappingShift,
 } from './utils/schedule-utils';
-import { GetUser } from 'src/auth/decorators';
 
 @Injectable()
 export class ScheduleService {
@@ -34,59 +36,79 @@ export class ScheduleService {
   ) {}
 
   async create(dtos: CreateScheduleDto[], user: User) {
-    // Verify that the user has a profile
-    const medicInfo = await this.medicInfoRepo.findOne({
-      where: { user: { id: user.id } },
-    });
+    try {
+      // Verify that the user has a profile
+      const medicInfo = await this.medicInfoRepo.findOne({
+        where: { user: { id: user.id } },
+      });
 
-    const assistantInfo = await this.assistantInfoRepo.findOne({
-      where: { user: { id: user.id } },
-    });
+      const assistantInfo = await this.assistantInfoRepo.findOne({
+        where: { user: { id: user.id } },
+      });
 
-    if (!medicInfo && !assistantInfo) {
-      throw new BadRequestException(
-        'User must have a profile to create a schedule.',
-      );
-    }
-
-    const schedules: DeepPartial<Schedule>[] = [...dtos];
-
-    // Verify duplicate schedules in the request's body
-    if (hasDuplicateSchedules(schedules)) {
-      throw new BadRequestException(
-        'Duplicate schedules found in the request body.',
-      );
-    }
-
-    // Get existing schedules
-    const existingSchedules = await this.scheduleRepo.find({
-      where: medicInfo
-        ? { medicInfo: { id: medicInfo.id } }
-        : { assistantInfo: { id: assistantInfo.id } },
-    });
-
-    // Verify duplicate schedules in the database
-    if (isDuplicateSchedule(schedules, existingSchedules)) {
-      throw new BadRequestException('These schedules already exist.');
-    }
-
-    // Assign an id for each schedule
-    for (const schedule of schedules) {
-      if (medicInfo) {
-        schedule.medicInfo = medicInfo;
-      } else if (assistantInfo) {
-        schedule.assistantInfo = assistantInfo;
+      if (!medicInfo && !assistantInfo) {
+        throw new BadRequestException(
+          'User must have a profile to create a schedule.',
+        );
       }
+
+      const schedules: DeepPartial<Schedule>[] = [...dtos];
+
+      // Verify duplicate shifts in the body
+      if (hasDuplicateShifts(schedules)) {
+        throw new BadRequestException('Duplicate shift(s) found.');
+      }
+
+      // Get existing schedule
+      const existingSchedules = await this.scheduleRepo.find({
+        where: medicInfo
+          ? { medicInfo: { id: medicInfo.id } }
+          : { assistantInfo: { id: assistantInfo.id } },
+      });
+
+      // Verify duplicate shifts in the database
+      if (isDuplicateShift(schedules, existingSchedules)) {
+        throw new BadRequestException('Shift(s) already exists.');
+      }
+
+      if (isOverlappingShift(schedules, existingSchedules)) {
+        throw new BadRequestException('Shift(s) overlap with existing ones.');
+      }
+
+      if (hasOverlappingShifts(schedules)) {
+        throw new BadRequestException('Overlapping shift(s) found.');
+      }
+
+      // Assign an id for each shift
+      for (const schedule of schedules) {
+        if (medicInfo) {
+          schedule.medicInfo = medicInfo;
+        } else if (assistantInfo) {
+          schedule.assistantInfo = assistantInfo;
+        }
+      }
+
+      // Create and save the schedule
+      const createdSchedules = this.scheduleRepo.create(schedules);
+      const savedSchedules = await this.scheduleRepo.save(createdSchedules);
+
+      return {
+        message: 'Schedule successfully created.',
+        schedules: savedSchedules,
+      };
+    } catch (error) {
+      // Log the error and throw a custom error message
+      this.logger.error(error.message, error.stack);
+
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException();
     }
-
-    // Create and save the schedules
-    const createdSchedules = this.scheduleRepo.create(schedules);
-    const savedSchedules = await this.scheduleRepo.save(createdSchedules);
-
-    return {
-      message: 'Schedules successfully created.',
-      schedules: savedSchedules,
-    };
   }
 
   async findByParent(
@@ -123,61 +145,70 @@ export class ScheduleService {
     return [];
   }
 
-  async update(id: string, dto: UpdateScheduleDto, @GetUser() user: User) {
-    // Verify that the schedules exists in the database
-    const existing = await this.scheduleRepo.findOne({
-      where: { id },
-      relations: ['medicInfo', 'assistantInfo'],
-    });
+  async update(id: string, dto: UpdateScheduleDto, user: User) {
+    try {
+      const medicInfo = await this.medicInfoRepo.findOne({
+        where: { user: { id: user.id } },
+      });
 
-    if (!existing) {
-      throw new NotFoundException('The schedule does not exist.');
+      const assistantInfo = await this.assistantInfoRepo.findOne({
+        where: { user: { id: user.id } },
+      });
+
+      if (!medicInfo && !assistantInfo) {
+        throw new BadRequestException('User must have a profile.');
+      }
+
+      const existing = await this.scheduleRepo.findOne({
+        where: { id },
+        relations: ['medicInfo', 'assistantInfo'],
+      });
+
+      if (!existing) {
+        throw new NotFoundException('Shift not found.');
+      }
+
+      // Asegurar que el turno le pertenezca al usuario
+      const isOwner =
+        (medicInfo && existing.medicInfo?.id === medicInfo.id) ||
+        (assistantInfo && existing.assistantInfo?.id === assistantInfo.id);
+
+      if (!isOwner) {
+        throw new BadRequestException("You can't update this shift.");
+      }
+
+      // Verificar duplicados
+      const siblingSchedules = await this.scheduleRepo.find({
+        where: medicInfo
+          ? { medicInfo: { id: medicInfo.id } }
+          : { assistantInfo: { id: assistantInfo.id } },
+      });
+
+      const filtered = siblingSchedules.filter((s) => s.id !== id);
+      if (isDuplicateShift([dto], filtered)) {
+        throw new BadRequestException('This shift already exists.');
+      }
+
+      await this.scheduleRepo.update(id, dto);
+
+      const updated = await this.scheduleRepo.findOneBy({ id });
+
+      return {
+        message: 'Schedule successfully updated.',
+        schedule: updated,
+      };
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+
+      throw new InternalServerErrorException();
     }
-
-    const medicInfo = await this.medicInfoRepo.findOne({
-      where: { user: { id: user.id } },
-    });
-
-    const assistantInfo = await this.assistantInfoRepo.findOne({
-      where: { user: { id: user.id } },
-    });
-
-    if (!medicInfo && !assistantInfo) {
-      throw new BadRequestException(
-        'User must have a profile to update a schedule.',
-      );
-    }
-
-    // Get existing schedules
-    const allSchedules = await this.scheduleRepo.find({
-      where: medicInfo
-        ? { medicInfo: { id: medicInfo.id } }
-        : { assistantInfo: { id: assistantInfo.id } },
-    });
-
-    // Validate duplicates
-    const filteredSchedules = allSchedules.filter(
-      (schedule) => schedule.id !== id, // Don't compare current schedule
-    );
-
-    if (isDuplicateSchedule([dto], filteredSchedules)) {
-      throw new BadRequestException('This schedule already exists.');
-    }
-
-    // Assign an id to the updated schedule
-    if (medicInfo) {
-      existing.medicInfo = medicInfo;
-    } else if (assistantInfo) {
-      existing.assistantInfo = assistantInfo;
-    }
-
-    // Update the schedule
-    await this.scheduleRepo.update(id, dto);
-
-    return {
-      message: 'Schedule successfully updated.',
-      schedule: await this.scheduleRepo.findOneBy({ id }),
-    };
   }
 
   async remove(id: string) {

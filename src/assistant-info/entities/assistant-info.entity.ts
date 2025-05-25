@@ -10,7 +10,7 @@ import {
 import { User } from 'src/auth/entities/user.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 
-@Entity('assistant-info')
+@Entity('assistant_info')
 export class AssistantInfo {
   @PrimaryGeneratedColumn('uuid')
   id: string;

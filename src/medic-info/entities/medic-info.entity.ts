@@ -10,7 +10,7 @@ import {
 import { User } from 'src/auth/entities/user.entity';
 import { Schedule } from 'src/schedule/entities/schedule.entity';
 
-@Entity('medic-info')
+@Entity('medic_info')
 export class MedicInfo {
   @PrimaryGeneratedColumn('uuid')
   id: string;
