@@ -61,7 +61,7 @@ export class MedicInfoService {
   async findMedicInfoByUser(user: User) {
     const medicInfo = await this.medicInfoRepository.findOne({
       where: { user: user },
-      relations: ['schedules'],
+      relations: ['schedule'],
     });
 
     if (!medicInfo) {

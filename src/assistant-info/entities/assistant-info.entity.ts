@@ -2,7 +2,6 @@ import {
   Column,
   Entity,
   JoinColumn,
-  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -15,15 +14,6 @@ export class AssistantInfo {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
-  checkIn: string;
-
-  @Column('text')
-  checkOut: string;
-
-  @Column('text', { array: true })
-  days: string[];
-
   @OneToOne(() => User, (user) => user.assistantInfo, { onDelete: 'CASCADE' })
   @JoinColumn()
   user: User;
@@ -32,6 +22,6 @@ export class AssistantInfo {
   @JoinColumn()
   medic: User;
 
-  @OneToMany(() => Schedule, (schedule) => schedule.assistantInfo)
-  schedules: Schedule[];
+  @OneToOne(() => Schedule, (schedule) => schedule.assistantInfo)
+  schedule: Schedule;
 }

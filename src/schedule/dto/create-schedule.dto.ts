@@ -1,35 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
-import {
-  IsCheckInBeforeCheckOut,
-  IsValidDays,
-  IsValidTimeSlot,
-} from 'src/common/validators';
+import { Type } from 'class-transformer';
+import { ArrayMinSize, IsArray, ValidateNested } from 'class-validator';
+import { ShiftDto } from './shift.dto';
 
 export class CreateScheduleDto {
   @ApiProperty({
-    example: '08:00',
-    description: 'Check-in time with format HH:mm',
-  })
-  @IsString()
-  @IsValidTimeSlot()
-  checkIn: string;
-
-  @ApiProperty({
-    example: '13:00',
-    description: 'Check-out time with format HH:mm',
-  })
-  @IsString()
-  @IsValidTimeSlot()
-  @IsCheckInBeforeCheckOut()
-  checkOut: string;
-
-  @ApiProperty({
-    example: ['monday', 'tuesday', 'wednesday'],
-    description: 'Days where the schedule applies.',
+    type: [ShiftDto],
+    description: 'Array of shifts that form the full schedule',
   })
   @IsArray()
-  @IsNotEmpty()
-  @IsValidDays()
-  days: string[];
+  @ValidateNested({ each: true })
+  @Type(() => ShiftDto)
+  @ArrayMinSize(1)
+  shifts: ShiftDto[];
 }

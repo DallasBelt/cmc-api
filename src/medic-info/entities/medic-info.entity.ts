@@ -2,7 +2,6 @@ import {
   Column,
   Entity,
   JoinColumn,
-  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -25,6 +24,6 @@ export class MedicInfo {
   @JoinColumn()
   user: User;
 
-  @OneToMany(() => Schedule, (schedule) => schedule.assistantInfo)
-  schedules: Schedule[];
+  @OneToOne(() => Schedule, (schedule) => schedule.medicInfo)
+  schedule: Schedule;
 }

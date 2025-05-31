@@ -1,13 +1,11 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseUUIDPipe,
   Patch,
   Post,
-  Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -29,18 +27,14 @@ export class ScheduleController {
   @Post()
   create(
     @GetUser() user: User,
-    @Body() body: CreateScheduleDto[],
-  ): Promise<{ message: string; schedules: Schedule[] }> {
+    @Body() body: CreateScheduleDto,
+  ): Promise<{ message: string; schedule: Schedule }> {
     return this.scheduleService.create(body, user);
   }
 
   @Get()
-  findAll(
-    @GetUser() user: User,
-    @Query('medicInfoId') medicId?: string,
-    @Query('assistantInfoId') assistantId?: string,
-  ) {
-    return this.scheduleService.findByParent(user, medicId, assistantId);
+  findOne(@GetUser() user: User) {
+    return this.scheduleService.findByParent(user);
   }
 
   @Patch(':id')
@@ -50,10 +44,5 @@ export class ScheduleController {
     @GetUser() user: User,
   ) {
     return this.scheduleService.update(id, dto, user);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.scheduleService.remove(id);
   }
 }

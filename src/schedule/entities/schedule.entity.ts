@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 import { MedicInfo } from 'src/medic-info/entities/medic-info.entity';
 import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity';
@@ -8,26 +14,26 @@ export class Schedule {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
-  checkIn: string;
-
-  @Column('text')
-  checkOut: string;
-
-  @Column('text', { array: true })
-  days: string[];
+  @Column('jsonb')
+  shifts: {
+    checkIn: string;
+    checkOut: string;
+    days: string[];
+  }[];
 
   // MedicInfo relationship
-  @ManyToOne(() => MedicInfo, (medicInfo) => medicInfo.schedules, {
+  @OneToOne(() => MedicInfo, (medicInfo) => medicInfo.schedule, {
     nullable: true,
     onDelete: 'CASCADE',
   })
+  @JoinColumn()
   medicInfo?: MedicInfo;
 
   // AssistantInfo relationship
-  @ManyToOne(() => AssistantInfo, (assistantInfo) => assistantInfo.schedules, {
+  @OneToOne(() => AssistantInfo, (assistantInfo) => assistantInfo.schedule, {
     nullable: true,
     onDelete: 'CASCADE',
   })
+  @JoinColumn()
   assistantInfo?: AssistantInfo;
 }
