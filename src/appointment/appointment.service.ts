@@ -31,12 +31,12 @@ export class AppointmentService {
   ) {}
 
   async create(createAppointmentDto: CreateAppointmentDto) {
-    const { startTime, endTime, patientId, medicId } = createAppointmentDto; // description
+    const { startTime, endTime, patientId, medicId } = createAppointmentDto;
     const patient = await this.patientService.findOne(patientId);
     const medic = await this.userRepository.findOne({
       where: { id: medicId },
     });
-    if (!medic || !medic.roles.includes('medic'))
+    if (!medic || medic.role !== 'medic')
       throw new NotFoundException('The user is not a medic or does not exist.');
     const existingAppointment = await this.appointmentRepository.findOne({
       where: {

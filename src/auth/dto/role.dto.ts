@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsString } from 'class-validator';
+
+import { ValidRoles } from '../interfaces';
 
 export class RoleDto {
   @ApiProperty()
@@ -8,6 +10,6 @@ export class RoleDto {
   email: string;
 
   @ApiProperty()
-  @IsString()
-  role: string;
+  @IsEnum(ValidRoles)
+  role: ValidRoles;
 }

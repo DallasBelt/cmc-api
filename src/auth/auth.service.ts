@@ -12,7 +12,6 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity';
-
 import { RoleDto, UserDto, LoginDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { ValidRoles } from './interfaces';
@@ -34,6 +33,7 @@ export class AuthService {
       const user = this.userRepository.create({
         ...userData,
         password: bcrypt.hashSync(password, 10),
+        role: ValidRoles.user, // Default role
       });
       await this.userRepository.save(user);
       delete user.password;
@@ -45,37 +45,38 @@ export class AuthService {
 
   async login(loginUserDto: LoginDto) {
     const { email, password } = loginUserDto;
+
     const user = await this.userRepository.findOne({
       where: { email },
       select: {
         id: true,
         password: true,
-        roles: true,
+        role: true,
         isActive: true,
       },
     });
 
     if (!user) {
-      throw new UnauthorizedException('Credentials are not valid.');
+      throw new UnauthorizedException('Credenciales incorrectas.');
     }
 
     if (!user.isActive) {
       throw new UnauthorizedException({
         errorCode: 'USER_INACTIVE',
-        message: 'User is inactive.',
+        message: 'Usuario inactivo.',
       });
     }
 
     if (!bcrypt.compareSync(password, user.password)) {
       throw new UnauthorizedException({
         errorCode: 'BAD_CREDENTIALS',
-        message: `Check credentials.`,
+        message: 'Credenciales incorrectas.',
       });
     }
 
     return {
       id: user.id,
-      roles: user.roles,
+      role: user.role,
       token: this.getJwtToken({ id: user.id }),
     };
   }
@@ -85,7 +86,9 @@ export class AuthService {
     const totalPages = await this.userRepository.count({
       where: { isActive: true },
     });
+
     const lastPage = Math.ceil(totalPages / limit);
+
     return {
       data: await this.userRepository.find({
         skip: (page - 1) * limit,
@@ -93,8 +96,8 @@ export class AuthService {
       }),
       meta: {
         total: totalPages,
-        page: page,
-        lastPage: lastPage,
+        page,
+        lastPage,
       },
     };
   }
@@ -104,12 +107,12 @@ export class AuthService {
       .createQueryBuilder('user')
       .innerJoinAndSelect('user.userInfo', 'userInfo')
       .where('user.isActive = :isActive', { isActive: true })
-      .andWhere(':role = ANY(user.roles)', { role: 'medic' })
+      .andWhere('user.role = :role', { role: ValidRoles.medic })
       .select([
         'user.id',
         'user.email',
         'user.isActive',
-        'user.roles',
+        'user.role',
         'userInfo.firstName',
         'userInfo.lastName',
         'userInfo.dni',
@@ -121,53 +124,70 @@ export class AuthService {
     return await this.userRepository
       .createQueryBuilder('user')
       .where('user.isActive = :isActive', { isActive: true })
-      .andWhere(':role = ANY(user.roles)', { role: 'assistant' }) // If roles is an array
+      .andWhere('user.role = :role', { role: ValidRoles.assistant })
       .getMany();
   }
 
   async changeRole(data: RoleDto) {
     const { email, role } = data;
+
     const user = await this.userRepository.findOne({ where: { email } });
-    if (!user)
-      throw new NotFoundException(`User with email: ${email} not found.`);
-    if (role !== ValidRoles.medic && role !== ValidRoles.assistant) {
-      throw new NotFoundException(`Role with: ${role} doesn't exist.`);
+    if (!user) {
+      throw new NotFoundException(
+        `No se encontró el usuario con email: ${email}`,
+      );
     }
+
+    if (![ValidRoles.medic, ValidRoles.assistant].includes(role)) {
+      throw new NotFoundException(`El rol ${role} no es válido.`);
+    }
+
     const userUpdated = await this.userRepository.preload({
       id: user.id,
-      roles: [role],
+      role,
     });
+
     await this.userRepository.save(userUpdated);
     return userUpdated;
   }
 
   async softDelete(email: string) {
     const user = await this.userRepository.findOne({ where: { email } });
-    if (!user)
-      throw new NotFoundException(`User with email: ${email} not found.`);
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con email ${email} no encontrado.`);
+    }
+
     const userUpdate = await this.userRepository.preload({
       id: user.id,
       isActive: !user.isActive,
     });
+
     await this.userRepository.save(userUpdate);
     return userUpdate;
   }
 
   async remove(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`User with id: ${id} not found.`);
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con id ${id} no encontrado.`);
+    }
+
     await this.userRepository.remove(user);
-    return { message: `User ${user.email} was deleted.` };
+    return { message: `El usuario ${user.email} fue eliminado.` };
   }
 
   private getJwtToken(payload: JwtPayload) {
-    const token = this.jwtService.sign(payload);
-    return token;
+    return this.jwtService.sign(payload);
   }
 
   private handleDBErrors(error: any): never {
-    if (error.code === '23505') throw new BadRequestException(error.detail);
+    if (error.code === '23505') {
+      throw new BadRequestException(error.detail);
+    }
+
     this.logger.error(error);
-    throw new InternalServerErrorException('Please check server logs.');
+    throw new InternalServerErrorException('Error inesperado. Ver logs.');
   }
 }

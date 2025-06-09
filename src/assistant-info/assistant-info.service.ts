@@ -30,7 +30,7 @@ export class AssistantInfoService {
     const medic = await this.userRepository.findOne({
       where: { id: medicId },
     });
-    if (!medic || !medic.roles.includes('medic'))
+    if (!medic || medic.role !== 'medic')
       throw new NotFoundException('The user is not a medic or does not exist.');
     try {
       const assistantInfo = this.assistantInfoRepository.create({
@@ -62,7 +62,7 @@ export class AssistantInfoService {
       medic = await this.userRepository.findOne({
         where: { id: medicId },
       });
-      if (!medic || !medic.roles.includes('medic'))
+      if (!medic || medic.role !== 'medic')
         throw new NotFoundException(
           'The user is not a medic or does not exist.',
         );

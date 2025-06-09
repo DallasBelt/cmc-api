@@ -14,6 +14,8 @@ import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity
 import { Patient } from 'src/patient/entities/patient.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 
+import { ValidRoles } from '../interfaces';
+
 @Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -25,8 +27,8 @@ export class User {
   @Column('text', { select: false })
   password: string;
 
-  @Column('text', { array: true, default: ['user'] })
-  roles: string[];
+  @Column('text', { default: 'user' })
+  role: ValidRoles;
 
   @Column('bool', { default: false })
   isActive: boolean;
