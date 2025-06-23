@@ -1,19 +1,9 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
-import { LoginDto, RoleDto, UserDto } from './dto';
-import { Auth } from './decorators';
+import { LoginDto, RoleDto, UpdatePasswordDto, UserDto } from './dto';
+import { Auth, GetUser } from './decorators';
 import { ValidRoles } from './interfaces';
 import { PaginationDto } from 'src/common/dto/pagination.dtos';
 
@@ -35,7 +25,7 @@ export class AuthController {
   }
 
   @Get('all')
-  @Auth(ValidRoles.admin)
+  @Auth(ValidRoles.Admin)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List all users (admin only).' })
   findAll(@Query() paginationDto: PaginationDto) {
@@ -43,7 +33,7 @@ export class AuthController {
   }
 
   @Get('all-medics')
-  @Auth(ValidRoles.assistant)
+  @Auth(ValidRoles.Assistant)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List all medics (assistant only).' })
   findAllMedics() {
@@ -51,34 +41,39 @@ export class AuthController {
   }
 
   @Get('all-assistants')
-  @Auth(ValidRoles.medic)
+  @Auth(ValidRoles.Medic)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List all assistants (medic only).' })
   findAllAssistants() {
     return this.authService.findAllAssistants();
   }
 
-  @Patch('change-role')
-  @Auth(ValidRoles.admin)
+  @Patch('assign-role')
+  @Auth(ValidRoles.Admin)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Change user role (admin only).' })
-  changeRole(@Body() data: RoleDto) {
-    return this.authService.changeRole(data);
+  @ApiOperation({ summary: 'Assign role to user (admin only).' })
+  assignRole(@Body() data: RoleDto) {
+    return this.authService.assignRole(data);
   }
 
-  @Patch('soft-delete')
-  @Auth(ValidRoles.admin)
+  @Patch('toggle-status')
+  @Auth(ValidRoles.Admin)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Toggle user active status (admin only).' })
-  softDeleteUserByEmail(@Body('email') email: string) {
-    return this.authService.softDelete(email);
+  @ApiOperation({
+    summary: 'Toggle user status between active/inactive (admin only).',
+  })
+  toggleStatus(@Body('email') email: string) {
+    return this.authService.toggleStatus(email);
   }
 
-  @Delete(':id')
-  @Auth(ValidRoles.admin)
+  @Patch('update-password')
+  @Auth()
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete user (admin only).' })
-  removeUser(@Param('id', ParseUUIDPipe) id: string) {
-    return this.authService.remove(id);
+  @ApiOperation({ summary: 'Update user password (authenticated users).' })
+  updatePassword(
+    @GetUser('id') userId: string,
+    @Body() dto: UpdatePasswordDto,
+  ) {
+    return this.authService.updatePassword(userId, dto);
   }
 }

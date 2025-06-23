@@ -17,7 +17,7 @@ export class MedicInfoController {
   constructor(private readonly medicInfoService: MedicInfoService) {}
 
   @Post()
-  @Auth(ValidRoles.medic)
+  @Auth(ValidRoles.Medic)
   create(
     @GetUser() user: User,
     @Body() createMedicInfoDto: CreateMedicInfoDto,
@@ -26,13 +26,13 @@ export class MedicInfoController {
   }
 
   @Get()
-  @Auth(ValidRoles.medic)
-  getMedicInfo(@GetUser() user: User) {
+  @Auth(ValidRoles.Medic)
+  findMedicInfoByUser(@GetUser() user: User) {
     return this.medicInfoService.findMedicInfoByUser(user);
   }
 
   @Patch()
-  @Auth(ValidRoles.medic)
+  @Auth(ValidRoles.Medic)
   updateMedicInfo(@GetUser() user: User, @Body() dto: UpdateMedicInfoDto) {
     return this.medicInfoService.updateMedicInfo(user, dto);
   }

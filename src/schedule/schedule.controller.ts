@@ -20,7 +20,7 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
 @ApiTags('schedule')
 @Controller('schedule')
-@Auth(ValidRoles.medic, ValidRoles.assistant)
+@Auth(ValidRoles.Medic, ValidRoles.Assistant)
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 

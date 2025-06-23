@@ -37,22 +37,18 @@ export class UserInfoService {
   }
 
   async findUserInfoByUser(user: User) {
-    // try {
-    //   const findUserInfoByUser = await this.userInfoRepository.findOne({
-    //     where: { user: user },
-    //   });
-    //   if (!findUserInfoByUser)
-    //     throw new NotFoundException(`User with id: ${user.id} not found`);
-    //   return findUserInfoByUser;
-    // } catch (error) {
-    //   this.handleExceptions(error);
-    // }
-    const findUserInfoByUser = await this.userInfoRepository.findOne({
-      where: { user: user },
-    });
-    if (!findUserInfoByUser)
-      throw new NotFoundException(`User with id: ${user.id} not found.`);
-    return findUserInfoByUser;
+    try {
+      const userInfo = await this.userInfoRepository.findOne({
+        where: { user },
+      });
+
+      return userInfo ?? null;
+    } catch (error) {
+      this.logger.error(`Error al buscar info del usuario ${user.id}`, error);
+      throw new InternalServerErrorException(
+        'No se pudo obtener la información del usuario.',
+      );
+    }
   }
 
   async update(user: User, updateUserInfoDto: UpdateUserInfoDto) {

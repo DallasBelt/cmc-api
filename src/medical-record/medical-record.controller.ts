@@ -20,7 +20,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dtos';
 import { ValidRoles } from 'src/auth/interfaces';
 
 @Controller('medical-record')
-@Auth(ValidRoles.admin, ValidRoles.medic)
+@Auth(ValidRoles.Admin, ValidRoles.Medic)
 export class MedicalRecordController {
   constructor(private readonly medicalRecordService: MedicalRecordService) {}
 

@@ -2,10 +2,12 @@ import {
   BeforeInsert,
   BeforeUpdate,
   Column,
+  CreateDateColumn,
   Entity,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 import { UserInfo } from 'src/user-info/entities/user-info.entity';
@@ -14,7 +16,7 @@ import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity
 import { Patient } from 'src/patient/entities/patient.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 
-import { ValidRoles } from '../interfaces';
+import { UserStatus, ValidRoles } from '../interfaces';
 
 @Entity('user')
 export class User {
@@ -27,11 +29,23 @@ export class User {
   @Column('text', { select: false })
   password: string;
 
-  @Column('text', { default: 'user' })
+  @Column('enum', {
+    enum: ValidRoles,
+    default: ValidRoles.User,
+  })
   role: ValidRoles;
 
-  @Column('bool', { default: false })
-  isActive: boolean;
+  @Column('enum', {
+    enum: UserStatus,
+    default: UserStatus.Pending,
+  })
+  status: UserStatus;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updatedAt: Date;
 
   @OneToOne(() => UserInfo, (userInfo) => userInfo.user, { cascade: true })
   userInfo: UserInfo;
@@ -59,7 +73,9 @@ export class User {
 
   @BeforeInsert()
   checkFieldsBeforeInsert() {
-    this.email = this.email.toLowerCase().trim();
+    if (this.email) {
+      this.email = this.email.toLowerCase().trim();
+    }
   }
 
   @BeforeUpdate()

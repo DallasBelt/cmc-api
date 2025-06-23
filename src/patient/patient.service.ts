@@ -92,7 +92,11 @@ export class PatientService {
   }
 
   private handleExceptions(error: any): never {
-    if (error.code === '23505') throw new BadRequestException(error.detail);
+    if (error.code === '23505') {
+      if (error.detail.includes('dni') || error.detail.includes('email')) {
+        throw new BadRequestException('Datos duplicados.');
+      }
+    }
     this.logger.error(error);
     throw new InternalServerErrorException(
       'Unexpected error, check server logs',

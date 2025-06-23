@@ -59,16 +59,19 @@ export class MedicInfoService {
   }
 
   async findMedicInfoByUser(user: User) {
-    const medicInfo = await this.medicInfoRepository.findOne({
-      where: { user: user },
-      relations: ['schedule'],
-    });
+    try {
+      const medicInfo = await this.medicInfoRepository.findOne({
+        where: { user: user },
+        relations: ['schedule'],
+      });
 
-    if (!medicInfo) {
-      throw new NotFoundException(`User with id: ${user.id} not found.`);
+      return medicInfo ?? null;
+    } catch (error) {
+      this.logger.error('Error al buscar info del médico', error);
+      throw new InternalServerErrorException(
+        'No se pudo obtener la información del médico.',
+      );
     }
-
-    return medicInfo;
   }
 
   async updateMedicInfo(user: User, dto: UpdateMedicInfoDto) {

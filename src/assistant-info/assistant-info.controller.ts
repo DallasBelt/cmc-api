@@ -16,7 +16,7 @@ export class AssistantInfoController {
   constructor(private readonly assistantInfoService: AssistantInfoService) {}
 
   @Post()
-  @Auth(ValidRoles.assistant)
+  @Auth(ValidRoles.Assistant) // 👈 cambio acá
   create(
     @GetUser() user: User,
     @Body() createAssistantInfoDto: CreateAssistantInfoDto,
@@ -30,7 +30,7 @@ export class AssistantInfoController {
   }
 
   @Patch()
-  @Auth(ValidRoles.assistant)
+  @Auth(ValidRoles.Assistant) // 👈 y acá también
   update(
     @GetUser() user: User,
     @Body() updateAssistantInfoDto: UpdateAssistantInfoDto,

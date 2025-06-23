@@ -28,7 +28,7 @@ export class UserInfoController {
   }
 
   @Get()
-  findUserInfoByUser(@GetUser() user: User): Promise<UserInfo> {
+  findUserInfoByUser(@GetUser() user: User): Promise<UserInfo | null> {
     return this.userInfoService.findUserInfoByUser(user);
   }
 

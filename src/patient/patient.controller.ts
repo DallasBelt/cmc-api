@@ -19,7 +19,7 @@ import { PaginationDto } from '../common/dto/pagination.dtos';
 import { ValidRoles } from 'src/auth/interfaces';
 
 @Controller('patient')
-@Auth(ValidRoles.admin, ValidRoles.medic, ValidRoles.assistant)
+@Auth(ValidRoles.Admin, ValidRoles.Medic, ValidRoles.Assistant)
 export class PatientController {
   constructor(private readonly patientService: PatientService) {}
 

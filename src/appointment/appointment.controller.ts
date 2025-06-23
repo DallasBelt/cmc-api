@@ -12,7 +12,6 @@ import {
 import { AppointmentService } from './appointment.service';
 
 import { Auth } from 'src/auth/decorators';
-
 import { ValidRoles } from 'src/auth/interfaces';
 
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -23,23 +22,25 @@ import { PaginationDto } from 'src/common/dto/pagination.dtos';
 export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
-  @Auth(ValidRoles.admin, ValidRoles.medic, ValidRoles.assistant)
+  @Auth(ValidRoles.Admin, ValidRoles.Medic, ValidRoles.Assistant)
   @Post()
   create(@Body() createAppointmentDto: CreateAppointmentDto) {
     return this.appointmentService.create(createAppointmentDto);
   }
 
+  @Auth(ValidRoles.Admin, ValidRoles.Medic, ValidRoles.Assistant)
   @Get()
   findAll(@Query() paginationDto: PaginationDto) {
     return this.appointmentService.findAll(paginationDto);
   }
 
+  @Auth(ValidRoles.Admin, ValidRoles.Medic, ValidRoles.Assistant)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.appointmentService.findOne(id);
   }
 
-  @Auth(ValidRoles.admin, ValidRoles.medic, ValidRoles.assistant)
+  @Auth(ValidRoles.Admin, ValidRoles.Medic, ValidRoles.Assistant)
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -48,7 +49,7 @@ export class AppointmentController {
     return this.appointmentService.update(id, updateAppointmentDto);
   }
 
-  @Auth(ValidRoles.admin, ValidRoles.medic, ValidRoles.assistant)
+  @Auth(ValidRoles.Admin, ValidRoles.Medic, ValidRoles.Assistant)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.appointmentService.remove(id);

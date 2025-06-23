@@ -7,6 +7,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { User } from '../entities/user.entity';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { envs } from 'src/config';
+import { UserStatus } from '../interfaces';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -24,7 +25,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const { id } = payload;
     const user = await this.userRepository.findOneBy({ id });
     if (!user) throw new UnauthorizedException('Invalid token.');
-    if (!user.isActive) throw new UnauthorizedException('User is inactive.');
+
+    // Check if user status is Active
+    if (user.status !== UserStatus.Active) {
+      throw new UnauthorizedException('User is not active.');
+    }
+
     return user;
   }
 }

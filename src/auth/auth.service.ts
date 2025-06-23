@@ -12,9 +12,9 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity';
-import { RoleDto, UserDto, LoginDto } from './dto';
+import { RoleDto, UserDto, LoginDto, UpdatePasswordDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { ValidRoles } from './interfaces';
+import { ValidRoles, UserStatus } from './interfaces';
 import { PaginationDto } from 'src/common/dto/pagination.dtos';
 
 @Injectable()
@@ -30,13 +30,19 @@ export class AuthService {
   async create(createUserDto: UserDto) {
     try {
       const { password, ...userData } = createUserDto;
+
+      // Hash the password and set default role and status
       const user = this.userRepository.create({
         ...userData,
         password: bcrypt.hashSync(password, 10),
-        role: ValidRoles.user, // Default role
+        role: ValidRoles.User, // Default role assigned on user creation
+        status: UserStatus.Pending, // Default status to pending
       });
+
       await this.userRepository.save(user);
       delete user.password;
+
+      // Return user data along with JWT token
       return { ...user, token: this.getJwtToken({ id: user.id }) };
     } catch (error) {
       this.handleDBErrors(error);
@@ -52,50 +58,52 @@ export class AuthService {
         id: true,
         password: true,
         role: true,
-        isActive: true,
+        status: true,
       },
     });
 
     if (!user) {
-      throw new UnauthorizedException('Credenciales incorrectas.');
+      throw new UnauthorizedException('Credenciales inválidas.');
     }
 
-    if (!user.isActive) {
-      throw new UnauthorizedException({
-        errorCode: 'USER_INACTIVE',
-        message: 'Usuario inactivo.',
-      });
+    if (user.status !== UserStatus.Active) {
+      throw new UnauthorizedException('Usuario inactivo.');
+    }
+
+    if (user.role === ValidRoles.User) {
+      throw new UnauthorizedException('Usuario sin rol.');
     }
 
     if (!bcrypt.compareSync(password, user.password)) {
-      throw new UnauthorizedException({
-        errorCode: 'BAD_CREDENTIALS',
-        message: 'Credenciales incorrectas.',
-      });
+      throw new UnauthorizedException('Credenciales inválidas.');
     }
 
     return {
       id: user.id,
       role: user.role,
+      status: user.status,
       token: this.getJwtToken({ id: user.id }),
     };
   }
 
   async findAll(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
-    const totalPages = await this.userRepository.count({
-      where: { isActive: true },
+
+    // Count total active users
+    const totalUsers = await this.userRepository.count();
+
+    const lastPage = Math.ceil(totalUsers / limit);
+
+    const users = await this.userRepository.find({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { email: 'ASC' },
     });
 
-    const lastPage = Math.ceil(totalPages / limit);
-
     return {
-      data: await this.userRepository.find({
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
+      data: users,
       meta: {
-        total: totalPages,
+        total: totalUsers,
         page,
         lastPage,
       },
@@ -103,15 +111,16 @@ export class AuthService {
   }
 
   async findAllMedics() {
+    // Fetch active medics with userInfo relations
     return await this.userRepository
       .createQueryBuilder('user')
       .innerJoinAndSelect('user.userInfo', 'userInfo')
-      .where('user.isActive = :isActive', { isActive: true })
-      .andWhere('user.role = :role', { role: ValidRoles.medic })
+      .where('user.status = :status', { status: UserStatus.Active })
+      .andWhere('user.role = :role', { role: ValidRoles.Medic })
       .select([
         'user.id',
         'user.email',
-        'user.isActive',
+        'user.status',
         'user.role',
         'userInfo.firstName',
         'userInfo.lastName',
@@ -121,73 +130,109 @@ export class AuthService {
   }
 
   async findAllAssistants() {
+    // Fetch active assistants
     return await this.userRepository
       .createQueryBuilder('user')
-      .where('user.isActive = :isActive', { isActive: true })
-      .andWhere('user.role = :role', { role: ValidRoles.assistant })
+      .where('user.status = :status', { status: UserStatus.Active })
+      .andWhere('user.role = :role', { role: ValidRoles.Assistant })
       .getMany();
   }
 
-  async changeRole(data: RoleDto) {
+  async assignRole(data: RoleDto) {
     const { email, role } = data;
 
     const user = await this.userRepository.findOne({ where: { email } });
+
     if (!user) {
       throw new NotFoundException(
         `No se encontró el usuario con email: ${email}`,
       );
     }
 
-    if (![ValidRoles.medic, ValidRoles.assistant].includes(role)) {
-      throw new NotFoundException(`El rol ${role} no es válido.`);
+    if (![ValidRoles.Medic, ValidRoles.Assistant].includes(role)) {
+      throw new BadRequestException(`El rol ${role} no es válido.`);
     }
 
-    const userUpdated = await this.userRepository.preload({
+    if (user.role !== ValidRoles.User) {
+      throw new BadRequestException('El usuario ya tiene un rol asignado.');
+    }
+
+    const updatedUser = await this.userRepository.preload({
       id: user.id,
       role,
+      status: UserStatus.Active,
     });
 
-    await this.userRepository.save(userUpdated);
-    return userUpdated;
+    await this.userRepository.save(updatedUser);
+
+    return updatedUser;
   }
 
-  async softDelete(email: string) {
+  async toggleStatus(email: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { email } });
 
     if (!user) {
       throw new NotFoundException(`Usuario con email ${email} no encontrado.`);
     }
 
-    const userUpdate = await this.userRepository.preload({
-      id: user.id,
-      isActive: !user.isActive,
-    });
+    user.status =
+      user.status === UserStatus.Active
+        ? UserStatus.Inactive
+        : UserStatus.Active;
 
-    await this.userRepository.save(userUpdate);
-    return userUpdate;
+    await this.userRepository.save(user);
+
+    return user;
   }
 
-  async remove(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
+  async updatePassword(
+    userId: string,
+    dto: UpdatePasswordDto,
+  ): Promise<{ message: string }> {
+    const { currentPassword, password: newPassword } = dto;
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'password'],
+    });
 
     if (!user) {
-      throw new NotFoundException(`Usuario con id ${id} no encontrado.`);
+      throw new NotFoundException('Usuario no encontrado.');
     }
 
-    await this.userRepository.remove(user);
-    return { message: `El usuario ${user.email} fue eliminado.` };
+    // Verify that the current password is OK
+    const isMatchCurrent = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatchCurrent) {
+      throw new UnauthorizedException('Contraseña actual incorrecta.');
+    }
+
+    // Verify that the new password is not the same as the current password
+    const isMatchNew = await bcrypt.compare(newPassword, user.password);
+    if (isMatchNew) {
+      throw new BadRequestException(
+        'La nueva contraseña no puede ser igual a la contraseña actual.',
+      );
+    }
+
+    // Update the password
+    user.password = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.save(user);
+
+    return { message: 'Contraseña actualizada exitosamente.' };
   }
 
   private getJwtToken(payload: JwtPayload) {
+    // Generate JWT token with given payload
     return this.jwtService.sign(payload);
   }
 
   private handleDBErrors(error: any): never {
+    // Handle database errors (e.g. duplicate entries)
     if (error.code === '23505') {
       throw new BadRequestException(error.detail);
     }
 
     this.logger.error(error);
-    throw new InternalServerErrorException('Error inesperado. Ver logs.');
+    throw new InternalServerErrorException('Error interno del servidor.');
   }
 }
