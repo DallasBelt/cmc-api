@@ -17,7 +17,7 @@ import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dtos';
 
-import { ValidRoles } from 'src/auth/interfaces';
+import { ValidRoles } from 'src/auth/enums';
 
 @Controller('medical-record')
 @Auth(ValidRoles.Admin, ValidRoles.Medic)

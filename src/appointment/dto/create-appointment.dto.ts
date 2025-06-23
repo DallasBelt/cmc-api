@@ -1,7 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsDate,
-  IsIn,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -9,6 +9,7 @@ import {
 } from 'class-validator';
 
 import { TransformDateWithHour } from 'src/common/transformers/date.transformer';
+import { AppointmentStatus } from '../enums/appointment-status.enum';
 
 export class CreateAppointmentDto {
   @ApiProperty()
@@ -23,16 +24,18 @@ export class CreateAppointmentDto {
   @IsNotEmpty()
   endTime: Date;
 
-  @ApiProperty()
+  @ApiPropertyOptional({
+    enum: AppointmentStatus,
+    default: AppointmentStatus.Pending,
+  })
+  @IsOptional()
+  @IsEnum(AppointmentStatus)
+  status?: AppointmentStatus;
+
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @IsIn(['pending', 'completed', 'canceled'])
-  status?: 'pending' | 'completed' | 'canceled';
-
-  // @ApiProperty()
-  // @IsOptional()
-  // @IsString()
-  // description?: string;
+  reason?: string;
 
   @ApiProperty()
   @IsUUID()

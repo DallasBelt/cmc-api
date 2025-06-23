@@ -16,7 +16,7 @@ import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity
 import { Patient } from 'src/patient/entities/patient.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 
-import { UserStatus, ValidRoles } from '../interfaces';
+import { UserStatus, ValidRoles } from '../enums';
 
 @Entity('user')
 export class User {
@@ -41,10 +41,10 @@ export class User {
   })
   status: UserStatus;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
   @OneToOne(() => UserInfo, (userInfo) => userInfo.user, { cascade: true })

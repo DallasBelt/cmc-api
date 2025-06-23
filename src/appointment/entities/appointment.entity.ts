@@ -9,6 +9,7 @@ import {
 
 import { Patient } from 'src/patient/entities/patient.entity';
 import { User } from 'src/auth/entities/user.entity';
+import { AppointmentStatus } from '../enums/appointment-status.enum';
 
 @Entity('appointment')
 export class Appointment {
@@ -24,11 +25,15 @@ export class Appointment {
   @Column('timestamp')
   endTime: Date;
 
-  @Column('text', { default: 'pending' })
-  status: 'pending' | 'completed' | 'canceled';
+  @Column('text')
+  reason: string;
 
-  // @Column('text')
-  // description: string;
+  @Column({
+    type: 'enum',
+    enum: AppointmentStatus,
+    default: AppointmentStatus.Pending,
+  })
+  status: AppointmentStatus;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

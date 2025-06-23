@@ -14,7 +14,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { RoleDto, UserDto, LoginDto, UpdatePasswordDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { ValidRoles, UserStatus } from './interfaces';
+import { ValidRoles, UserStatus } from './enums';
 import { PaginationDto } from 'src/common/dto/pagination.dtos';
 
 @Injectable()

@@ -4,7 +4,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto, RoleDto, UpdatePasswordDto, UserDto } from './dto';
 import { Auth, GetUser } from './decorators';
-import { ValidRoles } from './interfaces';
+import { ValidRoles } from './enums';
 import { PaginationDto } from 'src/common/dto/pagination.dtos';
 
 @ApiTags('auth')

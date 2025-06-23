@@ -8,7 +8,7 @@ import { AssistantInfoService } from './assistant-info.service';
 
 import { CreateAssistantInfoDto } from './dto/create-assistant-info.dto';
 import { UpdateAssistantInfoDto } from './dto/update-assistant-info.dto';
-import { ValidRoles } from 'src/auth/interfaces';
+import { ValidRoles } from 'src/auth/enums';
 
 @Controller('assistant-info')
 @Auth()

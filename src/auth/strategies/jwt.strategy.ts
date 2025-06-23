@@ -7,7 +7,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { User } from '../entities/user.entity';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { envs } from 'src/config';
-import { UserStatus } from '../interfaces';
+import { UserStatus } from '../enums';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

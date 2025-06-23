@@ -16,7 +16,7 @@ import { PatientService } from './patient.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { PaginationDto } from '../common/dto/pagination.dtos';
-import { ValidRoles } from 'src/auth/interfaces';
+import { ValidRoles } from 'src/auth/enums';
 
 @Controller('patient')
 @Auth(ValidRoles.Admin, ValidRoles.Medic, ValidRoles.Assistant)

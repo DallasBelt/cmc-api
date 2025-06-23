@@ -9,7 +9,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { CreateMedicInfoDto } from './dto/create-medic-info.dto';
 import { UpdateMedicInfoDto } from './dto/update-medic-info.dto';
 
-import { ValidRoles } from 'src/auth/interfaces';
+import { ValidRoles } from 'src/auth/enums';
 
 @Controller('medic-info')
 @Auth()

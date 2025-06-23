@@ -12,7 +12,7 @@ import {
 import { AppointmentService } from './appointment.service';
 
 import { Auth } from 'src/auth/decorators';
-import { ValidRoles } from 'src/auth/interfaces';
+import { ValidRoles } from 'src/auth/enums';
 
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
