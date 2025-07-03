@@ -14,11 +14,7 @@ import { Schedule } from './entities/schedule.entity';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
-import {
-  hasDuplicateShifts,
-  hasOverlappingShifts,
-  areShiftsEqual,
-} from './utils/schedule-utils';
+import { hasDuplicateShifts, hasOverlappingShifts, areShiftsEqual } from './utils/schedule-utils';
 
 @Injectable()
 export class ScheduleService {
@@ -69,9 +65,7 @@ export class ScheduleService {
       };
     } catch (error) {
       this.logger.error(error.message, error.stack);
-      throw error instanceof BadRequestException
-        ? error
-        : new InternalServerErrorException();
+      throw error instanceof BadRequestException ? error : new InternalServerErrorException();
     }
   }
 
@@ -143,8 +137,7 @@ export class ScheduleService {
       };
     } catch (error) {
       this.logger.error(error.message, error.stack);
-      throw error instanceof BadRequestException ||
-        error instanceof NotFoundException
+      throw error instanceof BadRequestException || error instanceof NotFoundException
         ? error
         : new InternalServerErrorException();
     }

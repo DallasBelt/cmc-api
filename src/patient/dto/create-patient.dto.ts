@@ -1,12 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsDate,
-  IsEmail,
-  IsIn,
-  IsNotEmpty,
-  IsString,
-  IsUUID,
-} from 'class-validator';
+import { IsDate, IsEmail, IsIn, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 import { IsValidDni } from '../decorators/dni-validator.decorator';
 import { TransformDate } from '../../common/transformers/date.transformer';

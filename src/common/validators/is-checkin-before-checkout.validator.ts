@@ -7,9 +7,7 @@ import {
 } from 'class-validator';
 
 @ValidatorConstraint({ name: 'IsCheckInBeforeCheckOut', async: false })
-export class IsCheckInBeforeCheckOutConstraint
-  implements ValidatorConstraintInterface
-{
+export class IsCheckInBeforeCheckOutConstraint implements ValidatorConstraintInterface {
   validate(_: any, args: ValidationArguments): boolean {
     const object = args.object as { checkIn: string; checkOut: string };
     if (!object.checkIn || !object.checkOut) {

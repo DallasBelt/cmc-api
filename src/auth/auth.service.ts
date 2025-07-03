@@ -24,7 +24,7 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) {}
 
   async create(createUserDto: UserDto) {
@@ -202,7 +202,7 @@ export class AuthService {
     const isMatchNew = await bcrypt.compare(newPassword, user.password);
     if (isMatchNew) {
       throw new BadRequestException(
-        'La nueva contraseña no puede ser igual a la contraseña actual.'
+        'La nueva contraseña no puede ser igual a la contraseña actual.',
       );
     }
 

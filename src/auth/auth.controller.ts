@@ -70,10 +70,7 @@ export class AuthController {
   @Auth()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update user password (authenticated users).' })
-  updatePassword(
-    @GetUser('id') userId: string,
-    @Body() dto: UpdatePasswordDto,
-  ) {
+  updatePassword(@GetUser('id') userId: string, @Body() dto: UpdatePasswordDto) {
     return this.authService.updatePassword(userId, dto);
   }
 }

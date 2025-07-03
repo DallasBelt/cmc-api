@@ -1,12 +1,17 @@
-# compiled output
-/dist
+# Node modules
 /node_modules
 
-/postgres
+# Build output
+/dist
+/.next
+/out
 
+# Environment files
 .env
+.env.*.local
 
-/.idx
+# DB data
+/postgres
 
 # Logs
 logs
@@ -17,25 +22,28 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# OS
-.DS_Store
-
-# Tests
-/coverage
-/.nyc_output
-
 # IDEs and editors
-/.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-
-# IDE - VSCode
+.idea/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+*.sublime-workspace
+*.launch
+*.code-workspace
+.c9/
+.classpath
+.project
+.settings/
+
+# Coverage and test
+/coverage
+/.nyc_output
+
+# System
+.DS_Store
+Thumbs.db
+
+# IDX
+/.idx

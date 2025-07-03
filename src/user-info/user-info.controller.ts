@@ -18,10 +18,7 @@ export class UserInfoController {
   constructor(private readonly userInfoService: UserInfoService) {}
 
   @Post()
-  create(
-    @GetUser() user: User,
-    @Body() createUserInfoDto: CreateUserInfoDto,
-  ): Promise<UserInfo> {
+  create(@GetUser() user: User, @Body() createUserInfoDto: CreateUserInfoDto): Promise<UserInfo> {
     const userInfo = new UserInfo();
     Object.assign(userInfo, createUserInfoDto);
     return this.userInfoService.create(user, createUserInfoDto);
@@ -33,10 +30,7 @@ export class UserInfoController {
   }
 
   @Patch()
-  update(
-    @GetUser() user: User,
-    @Body() updateUserInfoDto: UpdateUserInfoDto,
-  ): Promise<UserInfo> {
+  update(@GetUser() user: User, @Body() updateUserInfoDto: UpdateUserInfoDto): Promise<UserInfo> {
     const userInfo = new UserInfo();
     Object.assign(userInfo, updateUserInfoDto);
     return this.userInfoService.update(user, updateUserInfoDto);

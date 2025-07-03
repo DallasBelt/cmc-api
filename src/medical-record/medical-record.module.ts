@@ -10,11 +10,7 @@ import { MedicalRecordController } from './medical-record.controller';
 import { PatientModule } from 'src/patient/patient.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([MedicalRecord]),
-    AuthModule,
-    PatientModule,
-  ],
+  imports: [TypeOrmModule.forFeature([MedicalRecord]), AuthModule, PatientModule],
   controllers: [MedicalRecordController],
   providers: [MedicalRecordService],
 })

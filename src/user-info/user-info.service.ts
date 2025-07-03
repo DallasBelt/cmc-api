@@ -45,9 +45,7 @@ export class UserInfoService {
       return userInfo ?? null;
     } catch (error) {
       this.logger.error(`Error al buscar info del usuario ${user.id}`, error);
-      throw new InternalServerErrorException(
-        'No se pudo obtener la información del usuario.',
-      );
+      throw new InternalServerErrorException('No se pudo obtener la información del usuario.');
     }
   }
 
@@ -57,8 +55,7 @@ export class UserInfoService {
       id: findUserInfoByUser.id,
       ...updateUserInfoDto,
     });
-    if (!userInfoToUpdate)
-      throw new NotFoundException(`User with id: ${user.id} not found.`);
+    if (!userInfoToUpdate) throw new NotFoundException(`User with id: ${user.id} not found.`);
     await this.userInfoRepository.save(userInfoToUpdate);
     return userInfoToUpdate;
   }

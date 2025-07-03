@@ -31,8 +31,7 @@ export class AppointmentService {
   ) {}
 
   async create(createAppointmentDto: CreateAppointmentDto) {
-    const { startTime, endTime, reason, patientId, medicId } =
-      createAppointmentDto;
+    const { startTime, endTime, reason, patientId, medicId } = createAppointmentDto;
     const patient = await this.patientService.findOne(patientId);
     const medic = await this.userRepository.findOne({
       where: { id: medicId },
@@ -47,9 +46,7 @@ export class AppointmentService {
       },
     });
     if (existingAppointment) {
-      throw new ConflictException(
-        'There is already an appointment in this time slot.',
-      );
+      throw new ConflictException('There is already an appointment in this time slot.');
     }
     try {
       const appointmentInfo = this.appointmentRepository.create({
@@ -69,13 +66,11 @@ export class AppointmentService {
 
   async findAll(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
-    const [appointments, total] = await this.appointmentRepository.findAndCount(
-      {
-        relations: ['patient', 'medic'],
-        take: limit,
-        skip: (page - 1) * limit,
-      },
-    );
+    const [appointments, total] = await this.appointmentRepository.findAndCount({
+      relations: ['patient', 'medic'],
+      take: limit,
+      skip: (page - 1) * limit,
+    });
     return {
       data: appointments,
       total,
@@ -89,8 +84,7 @@ export class AppointmentService {
       where: { id },
       relations: ['patient', 'medic'],
     });
-    if (!findAppointment)
-      throw new NotFoundException(`Appointment with id: ${id} not found`);
+    if (!findAppointment) throw new NotFoundException(`Appointment with id: ${id} not found`);
     return findAppointment;
   }
 
@@ -107,17 +101,14 @@ export class AppointmentService {
         },
       });
       if (existingAppointment) {
-        throw new ConflictException(
-          'There is already an appointment in this time slot.',
-        );
+        throw new ConflictException('There is already an appointment in this time slot.');
       }
     }
     const appointmentToUpdate = await this.appointmentRepository.preload({
       id: findAppointment.id,
       ...updateAppointmentDto,
     });
-    if (!appointmentToUpdate)
-      throw new NotFoundException('Appointment not found for update.');
+    if (!appointmentToUpdate) throw new NotFoundException('Appointment not found for update.');
     await this.appointmentRepository.save(appointmentToUpdate);
     return this.findOne(id);
   }
@@ -126,8 +117,7 @@ export class AppointmentService {
     const appointment = await this.appointmentRepository.findOne({
       where: { id },
     });
-    if (!appointment)
-      throw new NotFoundException(`Appointment with id: ${id} not found`);
+    if (!appointment) throw new NotFoundException(`Appointment with id: ${id} not found`);
     await this.appointmentRepository.remove(appointment);
     return { message: `Appointment ${id} was deleted.` };
   }
@@ -135,8 +125,6 @@ export class AppointmentService {
   private handleExceptions(error: any): never {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
-    throw new InternalServerErrorException(
-      'Unexpected error, check server logs',
-    );
+    throw new InternalServerErrorException('Unexpected error, check server logs');
   }
 }

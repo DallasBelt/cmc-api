@@ -9,9 +9,7 @@ import {
 import { specialties } from 'src/constants/specialties';
 
 @ValidatorConstraint({ async: false })
-export class IsValidSpecialtiesConstraint
-  implements ValidatorConstraintInterface
-{
+export class IsValidSpecialtiesConstraint implements ValidatorConstraintInterface {
   validate(value: string, _args: ValidationArguments): boolean {
     if (typeof value !== 'string') return false;
     const validIds = specialties.map((s) => s.id);
@@ -24,7 +22,7 @@ export class IsValidSpecialtiesConstraint
 }
 
 export function IsValidSpecialties(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       target: object.constructor,
       propertyName,

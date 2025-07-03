@@ -66,8 +66,7 @@ export class PatientService {
       where: { id, isDeleted: false },
       relations: ['medic'],
     });
-    if (!findPatient)
-      throw new NotFoundException(`Patient with id: ${id} not found`);
+    if (!findPatient) throw new NotFoundException(`Patient with id: ${id} not found`);
     return findPatient;
   }
 
@@ -98,8 +97,6 @@ export class PatientService {
       }
     }
     this.logger.error(error);
-    throw new InternalServerErrorException(
-      'Unexpected error, check server logs',
-    );
+    throw new InternalServerErrorException('Unexpected error, check server logs');
   }
 }

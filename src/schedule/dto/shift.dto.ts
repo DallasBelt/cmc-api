@@ -1,10 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsNotEmpty, IsString } from 'class-validator';
-import {
-  IsCheckInBeforeCheckOut,
-  IsValidDays,
-  IsValidTimeSlot,
-} from 'src/common/validators';
+import { IsCheckInBeforeCheckOut, IsValidDays, IsValidTimeSlot } from 'src/common/validators';
 
 export class ShiftDto {
   @ApiProperty({ example: '08:00' })

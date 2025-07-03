@@ -43,12 +43,11 @@ export class MedicalRecordService {
 
   async findAll(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
-    const [medicalRecords, total] =
-      await this.medicalRecordRepository.findAndCount({
-        relations: ['patient', 'patient.medic'],
-        take: limit,
-        skip: (page - 1) * limit,
-      });
+    const [medicalRecords, total] = await this.medicalRecordRepository.findAndCount({
+      relations: ['patient', 'patient.medic'],
+      take: limit,
+      skip: (page - 1) * limit,
+    });
     return {
       data: medicalRecords,
       total,
@@ -62,8 +61,7 @@ export class MedicalRecordService {
       where: { id },
       relations: ['patient', 'patient.medic'],
     });
-    if (!findMedicalRecord)
-      throw new NotFoundException(`Medical record with id: ${id} not found.`);
+    if (!findMedicalRecord) throw new NotFoundException(`Medical record with id: ${id} not found.`);
     return findMedicalRecord;
   }
 
@@ -80,8 +78,6 @@ export class MedicalRecordService {
   private handleExceptions(error: any): never {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
-    throw new InternalServerErrorException(
-      'Unexpected error, check server logs.',
-    );
+    throw new InternalServerErrorException('Unexpected error, check server logs.');
   }
 }

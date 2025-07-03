@@ -52,9 +52,7 @@ export class MedicInfoService {
     } catch (error) {
       this.logger.error(error);
 
-      throw new InternalServerErrorException(
-        'Unexpected error while creating medic profile.',
-      );
+      throw new InternalServerErrorException('Unexpected error while creating medic profile.');
     }
   }
 
@@ -68,9 +66,7 @@ export class MedicInfoService {
       return medicInfo ?? null;
     } catch (error) {
       this.logger.error('Error al buscar info del médico', error);
-      throw new InternalServerErrorException(
-        'No se pudo obtener la información del médico.',
-      );
+      throw new InternalServerErrorException('No se pudo obtener la información del médico.');
     }
   }
 

@@ -1,6 +1,6 @@
-import { Controller, Post, Patch, Body, Get, Param, Delete } from '@nestjs/common';
+import { Controller, Patch, Body, Get, Param, Delete } from '@nestjs/common';
 import { AssistantInfoService } from './assistant-info.service';
-import { AssignAssistantDto } from './dto/assign-assistant.dto';
+import { AssignAssistantsDto } from './dto/assign-assistants.dto';
 import { AssistantInfo } from './entities/assistant-info.entity';
 import { Auth } from 'src/auth/decorators';
 import { ValidRoles } from 'src/auth/enums';
@@ -11,8 +11,8 @@ export class AssistantInfoController {
   constructor(private readonly assistantInfoService: AssistantInfoService) {}
 
   @Patch()
-  assignOrReassignAssistant(@Body() dto: AssignAssistantDto): Promise<{ message: string }> {
-    return this.assistantInfoService.assignAssistant(dto);
+  assignAssistants(@Body() dto: AssignAssistantsDto): Promise<{ message: string }> {
+    return this.assistantInfoService.assignAssistants(dto);
   }
 
   @Get(':medicId')
