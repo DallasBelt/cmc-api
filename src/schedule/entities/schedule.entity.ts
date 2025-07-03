@@ -7,7 +7,6 @@ import {
 } from 'typeorm';
 
 import { MedicInfo } from 'src/medic-info/entities/medic-info.entity';
-import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity';
 
 @Entity('schedule')
 export class Schedule {
@@ -26,14 +25,6 @@ export class Schedule {
     nullable: true,
     onDelete: 'CASCADE',
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'medic_info_id' })
   medicInfo?: MedicInfo;
-
-  // AssistantInfo relationship
-  @OneToOne(() => AssistantInfo, (assistantInfo) => assistantInfo.schedule, {
-    nullable: true,
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn()
-  assistantInfo?: AssistantInfo;
 }

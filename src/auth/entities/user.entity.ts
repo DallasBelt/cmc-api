@@ -58,10 +58,8 @@ export class User {
   })
   assistantInfo: AssistantInfo;
 
-  @OneToOne(() => AssistantInfo, (assistantInfo) => assistantInfo.medic, {
-    cascade: true,
-  })
-  assistant: AssistantInfo;
+  @OneToMany(() => AssistantInfo, (assistantInfo) => assistantInfo.medic)
+  assistant: AssistantInfo[];
 
   @OneToMany(() => Patient, (patient) => patient.medic, { cascade: true })
   patient: Patient[];

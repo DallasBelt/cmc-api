@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -19,14 +20,14 @@ export class Appointment {
   @Column('timestamp')
   date: Date;
 
-  @Column('timestamp')
+  @Column('timestamp', { name: 'start_time' })
   startTime: Date;
 
-  @Column('timestamp')
+  @Column('timestamp', { name: 'end_time' })
   endTime: Date;
 
-  @Column('text')
-  reason: string;
+  @Column('text', { nullable: true })
+  reason: string | null;
 
   @Column({
     type: 'enum',
@@ -42,8 +43,10 @@ export class Appointment {
   updatedAt: Date;
 
   @ManyToOne(() => Patient, (patient) => patient.appointments)
+  @JoinColumn({ name: 'patient_id' })
   patient: Patient;
 
   @ManyToOne(() => User, (user) => user.appointments)
+  @JoinColumn({ name: 'medic_id' })
   medic: User;
 }

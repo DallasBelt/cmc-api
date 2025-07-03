@@ -24,7 +24,7 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly jwtService: JwtService,
+    private readonly jwtService: JwtService
   ) {}
 
   async create(createUserDto: UserDto) {
@@ -63,7 +63,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas.');
+      throw new UnauthorizedException('Revise sus credenciales.');
     }
 
     if (user.status !== UserStatus.Active) {
@@ -75,7 +75,7 @@ export class AuthService {
     }
 
     if (!bcrypt.compareSync(password, user.password)) {
-      throw new UnauthorizedException('Credenciales inválidas.');
+      throw new UnauthorizedException('Revise sus credenciales.');
     }
 
     return {
@@ -144,9 +144,7 @@ export class AuthService {
     const user = await this.userRepository.findOne({ where: { email } });
 
     if (!user) {
-      throw new NotFoundException(
-        `No se encontró el usuario con email: ${email}`,
-      );
+      throw new NotFoundException(`No se encontró el usuario con email: ${email}`);
     }
 
     if (![ValidRoles.Medic, ValidRoles.Assistant].includes(role)) {
@@ -175,20 +173,14 @@ export class AuthService {
       throw new NotFoundException(`Usuario con email ${email} no encontrado.`);
     }
 
-    user.status =
-      user.status === UserStatus.Active
-        ? UserStatus.Inactive
-        : UserStatus.Active;
+    user.status = user.status === UserStatus.Active ? UserStatus.Inactive : UserStatus.Active;
 
     await this.userRepository.save(user);
 
     return user;
   }
 
-  async updatePassword(
-    userId: string,
-    dto: UpdatePasswordDto,
-  ): Promise<{ message: string }> {
+  async updatePassword(userId: string, dto: UpdatePasswordDto): Promise<{ message: string }> {
     const { currentPassword, password: newPassword } = dto;
 
     const user = await this.userRepository.findOne({
@@ -210,7 +202,7 @@ export class AuthService {
     const isMatchNew = await bcrypt.compare(newPassword, user.password);
     if (isMatchNew) {
       throw new BadRequestException(
-        'La nueva contraseña no puede ser igual a la contraseña actual.',
+        'La nueva contraseña no puede ser igual a la contraseña actual.'
       );
     }
 

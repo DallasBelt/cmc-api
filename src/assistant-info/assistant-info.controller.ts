@@ -1,40 +1,27 @@
-import { Controller, Post, Body, Patch, Get } from '@nestjs/common';
-import { Auth, GetUser } from 'src/auth/decorators';
-
-import { AssistantInfo } from './entities/assistant-info.entity';
-import { User } from 'src/auth/entities/user.entity';
-
+import { Controller, Post, Patch, Body, Get, Param, Delete } from '@nestjs/common';
 import { AssistantInfoService } from './assistant-info.service';
-
-import { CreateAssistantInfoDto } from './dto/create-assistant-info.dto';
-import { UpdateAssistantInfoDto } from './dto/update-assistant-info.dto';
+import { AssignAssistantDto } from './dto/assign-assistant.dto';
+import { AssistantInfo } from './entities/assistant-info.entity';
+import { Auth } from 'src/auth/decorators';
 import { ValidRoles } from 'src/auth/enums';
 
 @Controller('assistant-info')
-@Auth()
+@Auth(ValidRoles.Admin)
 export class AssistantInfoController {
   constructor(private readonly assistantInfoService: AssistantInfoService) {}
 
-  @Post()
-  @Auth(ValidRoles.Assistant) // 👈 cambio acá
-  create(
-    @GetUser() user: User,
-    @Body() createAssistantInfoDto: CreateAssistantInfoDto,
-  ): Promise<AssistantInfo> {
-    return this.assistantInfoService.create(user, createAssistantInfoDto);
-  }
-
-  @Get()
-  findAssistantInfoByUser(@GetUser() user: User): Promise<AssistantInfo> {
-    return this.assistantInfoService.findAssistantInfoByUser(user);
-  }
-
   @Patch()
-  @Auth(ValidRoles.Assistant) // 👈 y acá también
-  update(
-    @GetUser() user: User,
-    @Body() updateAssistantInfoDto: UpdateAssistantInfoDto,
-  ): Promise<AssistantInfo> {
-    return this.assistantInfoService.update(user, updateAssistantInfoDto);
+  assignOrReassignAssistant(@Body() dto: AssignAssistantDto): Promise<{ message: string }> {
+    return this.assistantInfoService.assignAssistant(dto);
+  }
+
+  @Get(':medicId')
+  findAssistantsByMedic(@Param('medicId') medicId: string): Promise<AssistantInfo[]> {
+    return this.assistantInfoService.findAssistantsByMedic(medicId);
+  }
+
+  @Delete(':userId')
+  removeAssignment(@Param('userId') userId: string): Promise<{ message: string }> {
+    return this.assistantInfoService.removeAssignment(userId);
   }
 }

@@ -10,7 +10,6 @@ import { Repository } from 'typeorm';
 
 import { User } from 'src/auth/entities/user.entity';
 import { MedicInfo } from 'src/medic-info/entities/medic-info.entity';
-import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity';
 import { Schedule } from './entities/schedule.entity';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
@@ -30,8 +29,6 @@ export class ScheduleService {
     private readonly scheduleRepo: Repository<Schedule>,
     @InjectRepository(MedicInfo)
     private readonly medicInfoRepo: Repository<MedicInfo>,
-    @InjectRepository(AssistantInfo)
-    private readonly assistantInfoRepo: Repository<AssistantInfo>,
   ) {}
 
   async create(dto: CreateScheduleDto, user: User) {
@@ -42,12 +39,8 @@ export class ScheduleService {
         where: { user: { id: user.id } },
       });
 
-      const assistantInfo = await this.assistantInfoRepo.findOne({
-        where: { user: { id: user.id } },
-      });
-
-      if (!medicInfo && !assistantInfo) {
-        throw new BadRequestException('User must have a profile.');
+      if (!medicInfo) {
+        throw new BadRequestException('User must have a medic profile.');
       }
 
       // Validate shifts array
@@ -66,7 +59,6 @@ export class ScheduleService {
           days: s.days,
         })),
         medicInfo,
-        assistantInfo,
       });
 
       const saved = await this.scheduleRepo.save(schedule);
@@ -89,21 +81,10 @@ export class ScheduleService {
         where: { user: { id: user.id } },
       });
 
-      const assistantInfo = await this.assistantInfoRepo.findOne({
-        where: { user: { id: user.id } },
-      });
-
       if (medicInfo) {
         return await this.scheduleRepo.find({
           where: { medicInfo: { id: medicInfo.id } },
           relations: ['medicInfo'],
-        });
-      }
-
-      if (assistantInfo) {
-        return await this.scheduleRepo.find({
-          where: { assistantInfo: { id: assistantInfo.id } },
-          relations: ['assistantInfo'],
         });
       }
 
@@ -118,7 +99,7 @@ export class ScheduleService {
     try {
       const existing = await this.scheduleRepo.findOne({
         where: { id },
-        relations: ['medicInfo', 'assistantInfo'],
+        relations: ['medicInfo'],
       });
 
       if (!existing) {
@@ -129,13 +110,7 @@ export class ScheduleService {
         where: { user: { id: user.id } },
       });
 
-      const assistantInfo = await this.assistantInfoRepo.findOne({
-        where: { user: { id: user.id } },
-      });
-
-      const isOwner =
-        (medicInfo && existing.medicInfo?.id === medicInfo.id) ||
-        (assistantInfo && existing.assistantInfo?.id === assistantInfo.id);
+      const isOwner = medicInfo && existing.medicInfo?.id === medicInfo.id;
 
       if (!isOwner) {
         throw new BadRequestException("You can't update this schedule.");

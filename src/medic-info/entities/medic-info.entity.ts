@@ -21,7 +21,7 @@ export class MedicInfo {
   speciality: string;
 
   @OneToOne(() => User, (user) => user.medicInfo, { onDelete: 'CASCADE' })
-  @JoinColumn()
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
   @OneToOne(() => Schedule, (schedule) => schedule.medicInfo)

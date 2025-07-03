@@ -1,7 +1,6 @@
-import { Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { User } from 'src/auth/entities/user.entity';
-import { Schedule } from 'src/schedule/entities/schedule.entity';
 
 @Entity('assistant_info')
 export class AssistantInfo {
@@ -9,13 +8,10 @@ export class AssistantInfo {
   id: string;
 
   @OneToOne(() => User, (user) => user.assistantInfo, { onDelete: 'CASCADE' })
-  @JoinColumn()
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @OneToOne(() => User, (user) => user.assistant, { onDelete: 'CASCADE' })
-  @JoinColumn()
+  @ManyToOne(() => User, (user) => user.assistant, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'medic_id' })
   medic: User;
-
-  @OneToOne(() => Schedule, (schedule) => schedule.assistantInfo)
-  schedule: Schedule;
 }

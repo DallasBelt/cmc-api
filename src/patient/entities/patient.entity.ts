@@ -1,9 +1,12 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 import { User } from 'src/auth/entities/user.entity';
@@ -15,7 +18,7 @@ export class Patient {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
+  @Column('text', { name: 'dni_type' })
   dniType: string;
 
   @Column('text', { unique: true })
@@ -24,10 +27,10 @@ export class Patient {
   @Column('text', { unique: true })
   email: string;
 
-  @Column('text')
+  @Column('text', { name: 'first_name' })
   firstName: string;
 
-  @Column('text')
+  @Column('text', { name: 'last_name' })
   lastName: string;
 
   @Column('date')
@@ -42,10 +45,17 @@ export class Patient {
   @Column('text')
   occupation: string;
 
-  @Column('boolean', { default: false })
+  @Column('boolean', { default: false, name: 'is_deleted' })
   isDeleted: boolean;
 
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
   @ManyToOne(() => User, (user) => user.patient, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'medic_id' })
   medic: User;
 
   @OneToMany(() => MedicalRecord, (medicalRecord) => medicalRecord.patient, {

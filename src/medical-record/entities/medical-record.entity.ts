@@ -4,6 +4,7 @@ import {
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 import { Patient } from 'src/patient/entities/patient.entity';
@@ -22,16 +23,16 @@ export class MedicalRecord {
   @Column('text')
   prescription?: string;
 
-  @Column('text')
+  @Column('text', { name: 'body_temperature' })
   bodyTemperature?: string;
 
-  @Column('text')
+  @Column('text', { name: 'blood_pressure' })
   bloodPressure?: string;
 
-  @Column('text')
+  @Column('text', { name: 'heart_rate' })
   heartRate?: string;
 
-  @Column('text')
+  @Column('text', { name: 'respiratory_rate' })
   respiratoryRate?: string;
 
   @Column('text')
@@ -46,7 +47,7 @@ export class MedicalRecord {
   @Column('text')
   observations?: string;
 
-  @Column('text')
+  @Column('text', { name: 'oxygen_saturation' })
   oxygenSaturation?: string;
 
   @Column('text')
@@ -54,6 +55,9 @@ export class MedicalRecord {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
   @ManyToOne(() => Patient, (patient) => patient.medicalRecord, {
     onDelete: 'CASCADE',

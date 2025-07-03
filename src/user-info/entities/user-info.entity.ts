@@ -13,16 +13,16 @@ export class UserInfo {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
+  @Column('text', { name: 'dni_type' })
   dniType: string;
 
   @Column('text', { unique: true })
   dni: string;
 
-  @Column('text')
+  @Column('text', { name: 'first_name' })
   firstName: string;
 
-  @Column('text')
+  @Column('text', { name: 'last_name' })
   lastName: string;
 
   @Column('date')
@@ -35,6 +35,6 @@ export class UserInfo {
   address: string;
 
   @OneToOne(() => User, (user) => user.userInfo, { onDelete: 'CASCADE' })
-  @JoinColumn()
+  @JoinColumn({ name: 'user_id' })
   user: User;
 }

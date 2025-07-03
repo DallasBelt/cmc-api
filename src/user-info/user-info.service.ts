@@ -39,7 +39,7 @@ export class UserInfoService {
   async findUserInfoByUser(user: User) {
     try {
       const userInfo = await this.userInfoRepository.findOne({
-        where: { user },
+        where: { user: { id: user.id } },
       });
 
       return userInfo ?? null;

@@ -1,18 +1,11 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from 'src/auth/entities/user.entity';
 import { AssistantInfo } from './entities/assistant-info.entity';
 
-import { CreateAssistantInfoDto } from './dto/create-assistant-info.dto';
-import { UpdateAssistantInfoDto } from './dto/update-assistant-info.dto';
+import { AssignAssistantDto } from './dto/assign-assistant.dto';
 
 @Injectable()
 export class AssistantInfoService {
@@ -22,68 +15,89 @@ export class AssistantInfoService {
     @InjectRepository(AssistantInfo)
     private readonly assistantInfoRepository: Repository<AssistantInfo>,
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly userRepository: Repository<User>
   ) {}
 
-  async create(user: User, createAssistantInfoDto: CreateAssistantInfoDto) {
-    const { medicId, ...rest } = createAssistantInfoDto;
-    const medic = await this.userRepository.findOne({
-      where: { id: medicId },
-    });
-    if (!medic || medic.role !== 'medic')
-      throw new NotFoundException('The user is not a medic or does not exist.');
-    try {
-      const assistantInfo = this.assistantInfoRepository.create({
-        ...rest,
-        user,
-        medic: medic,
-      });
-      await this.assistantInfoRepository.save(assistantInfo);
-      return assistantInfo;
-    } catch (error) {
-      this.handleExceptions(error);
-    }
-  }
+  // Assign or reassign assistant to medic
+  async assignAssistant(dto: AssignAssistantDto): Promise<{ message: string }> {
+    const { assistantId, medicId } = dto;
 
-  async findAssistantInfoByUser(user: User) {
-    const findAssistantInfoByUser = await this.assistantInfoRepository.findOne({
-      where: { user: user },
+    // Find the assistant user by ID
+    const user = await this.userRepository.findOne({ where: { id: assistantId } });
+    if (!user || user.role !== 'assistant') {
+      throw new NotFoundException('El usuario no es asistente o no existe.');
+    }
+
+    // Find the medic user by ID
+    const medic = await this.userRepository.findOne({ where: { id: medicId } });
+    if (!medic || medic.role !== 'medic') {
+      throw new NotFoundException('El médico no existe o no es válido.');
+    }
+
+    // Check if there is an existing assignment for this assistant
+    const existing = await this.assistantInfoRepository.findOne({
+      where: { user: { id: assistantId } },
       relations: ['medic'],
     });
-    if (!findAssistantInfoByUser)
-      throw new NotFoundException(`User with id: ${user.id} not found`);
-    return findAssistantInfoByUser;
-  }
 
-  async update(user: User, updateAssistantInfoDto: UpdateAssistantInfoDto) {
-    const { medicId, ...rest } = updateAssistantInfoDto;
-    let medic: User;
-    if (medicId) {
-      medic = await this.userRepository.findOne({
-        where: { id: medicId },
+    if (existing) {
+      // If assistant is already assigned to the same medic
+      if (existing.medic.id === medic.id) {
+        return { message: 'Este asistente ya está asignado a este médico.' };
+      }
+
+      // Update the existing assignment with the new medic
+      const updated = await this.assistantInfoRepository.preload({
+        id: existing.id,
+        medic,
       });
-      if (!medic || medic.role !== 'medic')
-        throw new NotFoundException(
-          'The user is not a medic or does not exist.',
-        );
+
+      if (!updated) {
+        throw new NotFoundException('No se encontró la asignación para actualizar.');
+      }
+
+      await this.assistantInfoRepository.save(updated);
+      return { message: 'Asistente reasignado correctamente al nuevo médico.' };
     }
-    const findAssistantInfoByUser = await this.findAssistantInfoByUser(user);
-    const assistantInfoToUpdate = await this.assistantInfoRepository.preload({
-      id: findAssistantInfoByUser.id,
-      ...rest,
-    });
-    if (medic) assistantInfoToUpdate.medic = medic;
-    if (!assistantInfoToUpdate)
-      throw new NotFoundException(`User with id: ${user.id} not found`);
-    await this.assistantInfoRepository.save(assistantInfoToUpdate);
-    return assistantInfoToUpdate;
+
+    // Create a new assignment if none exists
+    const newAssignment = this.assistantInfoRepository.create({ user, medic });
+    await this.assistantInfoRepository.save(newAssignment);
+
+    return { message: 'Asistente asignado correctamente al médico.' };
   }
 
-  private handleExceptions(error: any): never {
-    if (error.code === '23505') throw new BadRequestException(error.detail);
-    this.logger.error(error);
-    throw new InternalServerErrorException(
-      'Unexpected error, check server logs',
-    );
+  // Find all assistants assigned to a medic
+  async findAssistantsByMedic(medicId: string): Promise<AssistantInfo[]> {
+    const medic = await this.userRepository.findOne({ where: { id: medicId } });
+    if (!medic || medic.role !== 'medic') {
+      throw new NotFoundException('El médico no existe o no es válido.');
+    }
+
+    const assistants = await this.assistantInfoRepository.find({
+      where: { medic: { id: medicId } },
+      relations: ['user'],
+    });
+
+    if (assistants.length === 0) {
+      throw new NotFoundException('No hay asistentes asignados a este médico.');
+    }
+
+    return assistants;
+  }
+
+  // Remove assistant assignment by assistant user ID
+  async removeAssignment(userId: string): Promise<{ message: string }> {
+    const existing = await this.assistantInfoRepository.findOne({
+      where: { user: { id: userId } },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Este asistente no tiene una asignación.');
+    }
+
+    await this.assistantInfoRepository.remove(existing);
+
+    return { message: 'Asignación del asistente eliminada correctamente.' };
   }
 }
