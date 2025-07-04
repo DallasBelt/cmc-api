@@ -7,6 +7,8 @@ import { AssistantInfo } from './entities/assistant-info.entity';
 
 import { AssignAssistantsDto } from './dto/assign-assistants.dto';
 
+import { ValidRoles } from 'src/auth/enums';
+
 @Injectable()
 export class AssistantInfoService {
   private readonly logger = new Logger('AssistantInfoService');
@@ -18,71 +20,92 @@ export class AssistantInfoService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  // Assign or reassign assistant(s) to medic
-  async assignAssistants(dto: AssignAssistantsDto): Promise<{
-    message: string;
-    assigned: number;
-    reassigned: number;
-    skipped: number;
-  }> {
-    const { assistantIds, medicId } = dto;
+  async updateAssistants(dto: AssignAssistantsDto): Promise<{ message: string }> {
+    const { medicId, assistantIds } = dto;
+    this.logger.log(
+      `Updating assistants for medic ${medicId}, assistantIds: [${assistantIds.join(', ')}]`,
+    );
 
+    // Find the medic user and validate role
     const medic = await this.userRepository.findOne({ where: { id: medicId } });
     if (!medic || medic.role !== 'medic') {
       throw new NotFoundException('El médico no existe o no es válido.');
     }
 
-    let assigned = 0;
-    let reassigned = 0;
-    let skipped = 0;
+    // Fetch current assignments for this medic
+    const currentAssignments = await this.assistantInfoRepository.find({
+      where: { medic: { id: medicId } },
+      relations: ['user'],
+    });
 
-    for (const assistantId of assistantIds) {
-      const user = await this.userRepository.findOne({ where: { id: assistantId } });
+    // Extract current assistant IDs
+    const currentAssistantIds = currentAssignments.map((a) => a.user.id);
 
-      // Skip if assistant does not exist or is not of correct role
-      if (!user || user.role !== 'assistant') {
-        skipped++;
-        continue;
-      }
+    // Validate if the sent assistantIds are exactly the same as current
+    // First, compare lengths
+    if (assistantIds.length === currentAssistantIds.length) {
+      // Then check if every ID in assistantIds is included in currentAssistantIds (order doesn’t matter)
+      const isSameSet = assistantIds.every((id) => currentAssistantIds.includes(id));
 
-      const existing = await this.assistantInfoRepository.findOne({
-        where: { user: { id: assistantId } },
-        relations: ['medic'],
-      });
-
-      if (existing) {
-        // If already assigned to the same medic, skip
-        if (existing.medic.id === medic.id) {
-          skipped++;
-          continue;
-        }
-
-        // Reassign to a new medic
-        const updated = await this.assistantInfoRepository.preload({
-          id: existing.id,
-          medic,
-        });
-
-        if (updated) {
-          await this.assistantInfoRepository.save(updated);
-          reassigned++;
-        } else {
-          skipped++;
-        }
-      } else {
-        // Create new assignment
-        const newAssignment = this.assistantInfoRepository.create({ user, medic });
-        await this.assistantInfoRepository.save(newAssignment);
-        assigned++;
+      if (isSameSet) {
+        this.logger.log(`No changes detected for medic ${medicId}.`);
+        return { message: 'No se detectaron cambios.' };
       }
     }
 
-    return {
-      message: 'Asignaciones procesadas correctamente.',
-      assigned,
-      reassigned,
-      skipped,
-    };
+    // If assistantIds is empty, handle removal
+    if (assistantIds.length === 0) {
+      // Check if there are already no assignments
+      if (currentAssignments.length === 0) {
+        this.logger.warn(`No assignments to remove for medic ${medicId}`);
+        throw new Error('No se asignaron asistentes.');
+      }
+
+      // If there are assignments, remove them all
+      await this.assistantInfoRepository.remove(currentAssignments);
+      this.logger.log(`Removed all assistants for medic ${medicId}`);
+      return { message: 'Asistentes eliminados exitosamente.' };
+    }
+
+    // Otherwise, synchronize additions and removals as before
+    const toRemove = currentAssignments.filter((a) => !assistantIds.includes(a.user.id));
+    const toAddIds = assistantIds.filter((id) => !currentAssistantIds.includes(id));
+
+    // Remove outdated assignments from database
+    if (toRemove.length > 0) {
+      this.logger.log(
+        `Removing assistants [${toRemove.map((a) => a.user.id).join(', ')}] from medic ${medicId}`,
+      );
+      await this.assistantInfoRepository.remove(toRemove);
+    }
+
+    // Add new assignments for valid assistant users
+    for (const assistantId of toAddIds) {
+      this.logger.log(`Adding assistant ${assistantId} to medic ${medicId}`);
+      const user = await this.userRepository.findOne({ where: { id: assistantId } });
+
+      // Skip if user doesn't exist or is not assistant role
+      if (!user || user.role !== 'assistant') {
+        continue;
+      }
+
+      // Create new assignment and save it
+      const newAssignment = this.assistantInfoRepository.create({ user, medic });
+      await this.assistantInfoRepository.save(newAssignment);
+    }
+    this.logger.log(`Assistants for medic ${medicId} updated successfully.`);
+    return { message: 'Asistentes actualizados exitosamente.' };
+  }
+
+  // Get all users with role 'assistant'
+  async findAllAssistants(): Promise<User[]> {
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userInfo', 'userInfo')
+      .where('user.role = :role', { role: ValidRoles.Assistant })
+      .orderBy('userInfo.lastName', 'ASC')
+      .addOrderBy('userInfo.firstName', 'ASC')
+      .getMany();
   }
 
   // Find all assistants assigned to a medic
@@ -102,20 +125,5 @@ export class AssistantInfoService {
     }
 
     return assistants;
-  }
-
-  // Remove assistant assignment by assistant user ID
-  async removeAssignment(userId: string): Promise<{ message: string }> {
-    const existing = await this.assistantInfoRepository.findOne({
-      where: { user: { id: userId } },
-    });
-
-    if (!existing) {
-      throw new NotFoundException('Este asistente no tiene una asignación.');
-    }
-
-    await this.assistantInfoRepository.remove(existing);
-
-    return { message: 'Asignación del asistente eliminada correctamente.' };
   }
 }

@@ -1,4 +1,5 @@
-import { Controller, Patch, Body, Get, Param, Delete } from '@nestjs/common';
+import { Controller, Patch, Body, Get, Param } from '@nestjs/common';
+import { User } from '../auth/entities/user.entity';
 import { AssistantInfoService } from './assistant-info.service';
 import { AssignAssistantsDto } from './dto/assign-assistants.dto';
 import { AssistantInfo } from './entities/assistant-info.entity';
@@ -12,16 +13,16 @@ export class AssistantInfoController {
 
   @Patch()
   assignAssistants(@Body() dto: AssignAssistantsDto): Promise<{ message: string }> {
-    return this.assistantInfoService.assignAssistants(dto);
+    return this.assistantInfoService.updateAssistants(dto);
+  }
+
+  @Get()
+  async getAllAssistants(): Promise<User[]> {
+    return this.assistantInfoService.findAllAssistants();
   }
 
   @Get(':medicId')
   findAssistantsByMedic(@Param('medicId') medicId: string): Promise<AssistantInfo[]> {
     return this.assistantInfoService.findAssistantsByMedic(medicId);
-  }
-
-  @Delete(':userId')
-  removeAssignment(@Param('userId') userId: string): Promise<{ message: string }> {
-    return this.assistantInfoService.removeAssignment(userId);
   }
 }
