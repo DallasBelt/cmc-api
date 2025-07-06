@@ -1,28 +1,34 @@
 import { Controller, Patch, Body, Get, Param } from '@nestjs/common';
 import { User } from '../auth/entities/user.entity';
-import { AssistantInfoService } from './assistant-info.service';
-import { AssignAssistantsDto } from './dto/assign-assistants.dto';
 import { AssistantInfo } from './entities/assistant-info.entity';
+import { AssignAssistantsDto } from './dto/assign-assistants.dto';
+import { AssistantInfoService } from './assistant-info.service';
 import { Auth } from 'src/auth/decorators';
 import { ValidRoles } from 'src/auth/enums';
+import { Response } from 'src/common/interfaces/response.interface';
 
-@Controller('assistant-info')
+@Controller('assistants')
 @Auth(ValidRoles.Admin)
 export class AssistantInfoController {
   constructor(private readonly assistantInfoService: AssistantInfoService) {}
 
-  @Patch()
-  assignAssistants(@Body() dto: AssignAssistantsDto): Promise<{ message: string }> {
-    return this.assistantInfoService.updateAssistants(dto);
-  }
-
   @Get()
-  async getAllAssistants(): Promise<User[]> {
+  async findAllAssistants(): Promise<User[]> {
     return this.assistantInfoService.findAllAssistants();
   }
 
-  @Get(':medicId')
+  @Get('assigned/:medicId')
   findAssistantsByMedic(@Param('medicId') medicId: string): Promise<AssistantInfo[]> {
     return this.assistantInfoService.findAssistantsByMedic(medicId);
+  }
+
+  @Get('available')
+  async findAvailableAssistants(): Promise<User[]> {
+    return this.assistantInfoService.findAvailableAssistants();
+  }
+
+  @Patch()
+  updateAssistants(@Body() dto: AssignAssistantsDto): Promise<Response> {
+    return this.assistantInfoService.updateAssistants(dto);
   }
 }

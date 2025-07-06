@@ -4,10 +4,11 @@ import { Repository } from 'typeorm';
 
 import { User } from 'src/auth/entities/user.entity';
 import { AssistantInfo } from './entities/assistant-info.entity';
-
 import { AssignAssistantsDto } from './dto/assign-assistants.dto';
-
 import { ValidRoles } from 'src/auth/enums';
+import { UserStatus } from 'src/auth/enums';
+import { ResponseType } from 'src/common/enums/response-type.enum';
+import { Response } from 'src/common/interfaces/response.interface';
 
 @Injectable()
 export class AssistantInfoService {
@@ -20,11 +21,8 @@ export class AssistantInfoService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async updateAssistants(dto: AssignAssistantsDto): Promise<{ message: string }> {
+  async updateAssistants(dto: AssignAssistantsDto): Promise<Response> {
     const { medicId, assistantIds } = dto;
-    this.logger.log(
-      `Updating assistants for medic ${medicId}, assistantIds: [${assistantIds.join(', ')}]`,
-    );
 
     // Find the medic user and validate role
     const medic = await this.userRepository.findOne({ where: { id: medicId } });
@@ -41,30 +39,24 @@ export class AssistantInfoService {
     // Extract current assistant IDs
     const currentAssistantIds = currentAssignments.map((a) => a.user.id);
 
+    // If no assistant is selected and there are no assignments to remove
+    if (!assistantIds.length && !currentAssignments.length) {
+      return { message: 'Debe seleccionar al menos un asistente.', type: ResponseType.Warning };
+    }
+
     // Validate if the sent assistantIds are exactly the same as current
-    // First, compare lengths
     if (assistantIds.length === currentAssistantIds.length) {
-      // Then check if every ID in assistantIds is included in currentAssistantIds (order doesn’t matter)
       const isSameSet = assistantIds.every((id) => currentAssistantIds.includes(id));
 
       if (isSameSet) {
-        this.logger.log(`No changes detected for medic ${medicId}.`);
-        return { message: 'No se detectaron cambios.' };
+        return { message: 'No se detectaron cambios.', type: ResponseType.Info };
       }
     }
 
     // If assistantIds is empty, handle removal
     if (assistantIds.length === 0) {
-      // Check if there are already no assignments
-      if (currentAssignments.length === 0) {
-        this.logger.warn(`No assignments to remove for medic ${medicId}`);
-        throw new Error('No se asignaron asistentes.');
-      }
-
-      // If there are assignments, remove them all
       await this.assistantInfoRepository.remove(currentAssignments);
-      this.logger.log(`Removed all assistants for medic ${medicId}`);
-      return { message: 'Asistentes eliminados exitosamente.' };
+      return { message: 'Asistentes eliminados exitosamente.', type: ResponseType.Success };
     }
 
     // Otherwise, synchronize additions and removals as before
@@ -73,15 +65,17 @@ export class AssistantInfoService {
 
     // Remove outdated assignments from database
     if (toRemove.length > 0) {
-      this.logger.log(
-        `Removing assistants [${toRemove.map((a) => a.user.id).join(', ')}] from medic ${medicId}`,
-      );
       await this.assistantInfoRepository.remove(toRemove);
+      // Also update the state of removed assistants to Inactive
+      for (const assignment of toRemove) {
+        const assistantUser = assignment.user;
+        assistantUser.status = UserStatus.Pending;
+        await this.userRepository.save(assistantUser);
+      }
     }
 
     // Add new assignments for valid assistant users
     for (const assistantId of toAddIds) {
-      this.logger.log(`Adding assistant ${assistantId} to medic ${medicId}`);
       const user = await this.userRepository.findOne({ where: { id: assistantId } });
 
       // Skip if user doesn't exist or is not assistant role
@@ -92,9 +86,14 @@ export class AssistantInfoService {
       // Create new assignment and save it
       const newAssignment = this.assistantInfoRepository.create({ user, medic });
       await this.assistantInfoRepository.save(newAssignment);
+
+      // Update assistant status to ACTIVE when assigned to a medic
+      if (user.status !== UserStatus.Active) {
+        user.status = UserStatus.Active;
+        await this.userRepository.save(user);
+      }
     }
-    this.logger.log(`Assistants for medic ${medicId} updated successfully.`);
-    return { message: 'Asistentes actualizados exitosamente.' };
+    return { message: 'Asistentes actualizados exitosamente.', type: ResponseType.Success };
   }
 
   // Get all users with role 'assistant'
@@ -120,10 +119,19 @@ export class AssistantInfoService {
       relations: ['user'],
     });
 
-    if (assistants.length === 0) {
-      throw new NotFoundException('No hay asistentes asignados a este médico.');
-    }
-
     return assistants;
+  }
+
+  // Find all available assistants not assigned to any medic
+  async findAvailableAssistants(): Promise<User[]> {
+    return this.userRepository
+      .createQueryBuilder('user')
+      .leftJoin('assistant_info', 'info', 'info.user_id = user.id')
+      .leftJoinAndSelect('user.userInfo', 'userInfo')
+      .where('user.role = :role', { role: 'assistant' })
+      .andWhere('info.user_id IS NULL')
+      .orderBy('userInfo.lastName', 'ASC')
+      .addOrderBy('userInfo.firstName', 'ASC')
+      .getMany();
   }
 }

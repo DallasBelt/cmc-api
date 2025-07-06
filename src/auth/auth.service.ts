@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity';
+import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity';
 import { RoleDto, UserDto, LoginDto, UpdatePasswordDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { ValidRoles, UserStatus } from './enums';
@@ -24,6 +25,8 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(AssistantInfo)
+    private readonly assistantInfoRepository: Repository<AssistantInfo>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -64,6 +67,17 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedException('Revise sus credenciales.');
+    }
+
+    // If user is assistant, verify if assigned to a medic
+    if (user.role === ValidRoles.Assistant) {
+      const assigned = await this.assistantInfoRepository.findOne({
+        where: { user: { id: user.id } },
+        relations: ['medic'],
+      });
+      if (!assigned || !assigned.medic) {
+        throw new UnauthorizedException('Aún no se le ha asigado un médico.');
+      }
     }
 
     if (user.status !== UserStatus.Active) {
@@ -144,21 +158,22 @@ export class AuthService {
     const user = await this.userRepository.findOne({ where: { email } });
 
     if (!user) {
-      throw new NotFoundException(`No se encontró el usuario con email: ${email}`);
+      throw new NotFoundException(`User with email ${email} not found.`);
     }
 
     if (![ValidRoles.Medic, ValidRoles.Assistant].includes(role)) {
-      throw new BadRequestException(`El rol ${role} no es válido.`);
+      throw new BadRequestException(`Role ${role} is not valid.`);
     }
 
     if (user.role !== ValidRoles.User) {
-      throw new BadRequestException('El usuario ya tiene un rol asignado.');
+      throw new BadRequestException('User already has a role assigned.');
     }
 
+    // Only set status to Active if role is Medic, otherwise keep current status
     const updatedUser = await this.userRepository.preload({
       id: user.id,
       role,
-      status: UserStatus.Active,
+      status: role === ValidRoles.Medic ? UserStatus.Active : user.status,
     });
 
     await this.userRepository.save(updatedUser);
