@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { GetUser, Auth } from 'src/auth/decorators';
@@ -25,8 +25,8 @@ export class ScheduleController {
   }
 
   @Get()
-  findOne(@GetUser() user: User) {
-    return this.scheduleService.findByParent(user);
+  findByMedic(@GetUser() user: User) {
+    return this.scheduleService.findByMedic(user);
   }
 
   @Patch(':id')

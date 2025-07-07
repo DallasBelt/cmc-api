@@ -13,7 +13,7 @@ export class AssistantInfoController {
   constructor(private readonly assistantInfoService: AssistantInfoService) {}
 
   @Get()
-  async findAllAssistants(): Promise<User[]> {
+  async findAllAssistants(): Promise<{ id: string; email: string; medicId: string | null }[]> {
     return this.assistantInfoService.findAllAssistants();
   }
 

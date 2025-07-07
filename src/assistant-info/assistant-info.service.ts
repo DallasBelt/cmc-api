@@ -97,14 +97,13 @@ export class AssistantInfoService {
   }
 
   // Get all users with role 'assistant'
-  async findAllAssistants(): Promise<User[]> {
+  async findAllAssistants(): Promise<{ id: string; email: string; medicId: string | null }[]> {
     return await this.userRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.userInfo', 'userInfo')
+      .leftJoin('assistant_info', 'ai', 'ai.user_id = user.id')
+      .select(['user.id AS id', 'user.email AS email', 'ai.medic_id AS "medicId"'])
       .where('user.role = :role', { role: ValidRoles.Assistant })
-      .orderBy('userInfo.lastName', 'ASC')
-      .addOrderBy('userInfo.firstName', 'ASC')
-      .getMany();
+      .getRawMany();
   }
 
   // Find all assistants assigned to a medic

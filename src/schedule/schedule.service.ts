@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 
 import { User } from 'src/auth/entities/user.entity';
 import { MedicInfo } from 'src/medic-info/entities/medic-info.entity';
+import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity';
 import { Schedule } from './entities/schedule.entity';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
@@ -25,6 +26,8 @@ export class ScheduleService {
     private readonly scheduleRepo: Repository<Schedule>,
     @InjectRepository(MedicInfo)
     private readonly medicInfoRepo: Repository<MedicInfo>,
+    @InjectRepository(AssistantInfo)
+    private readonly assistantInfoRepo: Repository<AssistantInfo>,
   ) {}
 
   async create(dto: CreateScheduleDto, user: User) {
@@ -69,24 +72,36 @@ export class ScheduleService {
     }
   }
 
-  async findByParent(user: User): Promise<Schedule[]> {
-    try {
-      const medicInfo = await this.medicInfoRepo.findOne({
+  async findByMedic(user: User): Promise<Schedule[]> {
+    const userRole = user.role;
+
+    let medicId: string | null = null;
+
+    if (userRole === 'medic') {
+      medicId = user.id;
+    } else if (userRole === 'assistant') {
+      const assistantInfo = await this.assistantInfoRepo.findOne({
         where: { user: { id: user.id } },
+        relations: ['medic'],
       });
 
-      if (medicInfo) {
-        return await this.scheduleRepo.find({
-          where: { medicInfo: { id: medicInfo.id } },
-          relations: ['medicInfo'],
-        });
-      }
-
-      return [];
-    } catch (error) {
-      this.logger.error('Failed to find schedules for user', error.stack);
-      throw new InternalServerErrorException('Could not retrieve schedules.');
+      medicId = assistantInfo?.medic?.id ?? null;
     }
+
+    if (!medicId) {
+      return [];
+    }
+
+    const medicInfo = await this.medicInfoRepo.findOne({
+      where: { user: { id: medicId } },
+    });
+
+    if (!medicInfo) return [];
+
+    return this.scheduleRepo.find({
+      where: { medicInfo: { id: medicInfo.id } },
+      relations: ['medicInfo'],
+    });
   }
 
   async update(id: string, dto: UpdateScheduleDto, user: User) {
