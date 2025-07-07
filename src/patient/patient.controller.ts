@@ -9,10 +9,11 @@ import {
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { Auth } from 'src/auth/decorators';
+import { Auth, GetUser } from 'src/auth/decorators';
 
 import { PatientService } from './patient.service';
 
+import { User } from 'src/auth/entities/user.entity';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { PaginationDto } from '../common/dto/pagination.dtos';
@@ -24,8 +25,8 @@ export class PatientController {
   constructor(private readonly patientService: PatientService) {}
 
   @Post()
-  create(@Body() createPatientDto: CreatePatientDto) {
-    return this.patientService.create(createPatientDto);
+  create(@Body() createPatientDto: CreatePatientDto, @GetUser() user: User) {
+    return this.patientService.create(createPatientDto, user);
   }
 
   @Get()

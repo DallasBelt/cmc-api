@@ -59,7 +59,7 @@ export class User {
   assistantInfo: AssistantInfo;
 
   @OneToMany(() => AssistantInfo, (assistantInfo) => assistantInfo.medic)
-  assistant: AssistantInfo[];
+  assistants: AssistantInfo[];
 
   @OneToMany(() => Patient, (patient) => patient.medic, { cascade: true })
   patient: Patient[];

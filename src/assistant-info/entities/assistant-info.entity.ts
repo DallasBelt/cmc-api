@@ -11,7 +11,7 @@ export class AssistantInfo {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => User, (user) => user.assistant, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.assistants, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'medic_id' })
   medic: User;
 }

@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 
 import { Patient } from './entities/patient.entity';
 import { User } from 'src/auth/entities/user.entity';
+import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity';
 
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
@@ -22,27 +23,36 @@ export class PatientService {
   constructor(
     @InjectRepository(Patient)
     private readonly patientRepository: Repository<Patient>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(AssistantInfo)
+    private readonly assistantInfoRepository: Repository<AssistantInfo>,
   ) {}
 
-  async create(createPatientDto: CreatePatientDto) {
-    const { medicId, ...rest } = createPatientDto;
-    const medic = await this.userRepository.findOne({
-      where: { id: medicId },
-    });
-    if (!medic || medic.role !== 'medic')
-      throw new NotFoundException('The user is not a medic or does not exist.');
-    try {
-      const patientInfo = this.patientRepository.create({
-        ...rest,
-        medic,
+  async create(createPatientDto: CreatePatientDto, user: User) {
+    let medic: User | null = null;
+
+    if (user.role === 'medic') {
+      medic = user;
+    } else if (user.role === 'assistant') {
+      const assistantInfo = await this.assistantInfoRepository.findOne({
+        where: { user: { id: user.id } },
+        relations: ['medic'],
       });
-      await this.patientRepository.save(patientInfo);
-      return patientInfo;
-    } catch (error) {
-      this.handleExceptions(error);
+
+      medic = assistantInfo?.medic ?? null;
     }
+
+    if (!medic) {
+      throw new NotFoundException('El usuario no es médico o no está asignado a ningún médico.');
+    }
+
+    const patientInfo = this.patientRepository.create({
+      ...createPatientDto,
+      medic,
+    });
+
+    await this.patientRepository.save(patientInfo);
+
+    return patientInfo;
   }
 
   async findAll(paginationDto: PaginationDto) {
