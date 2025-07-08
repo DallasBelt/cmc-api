@@ -12,8 +12,6 @@ import { Response } from 'src/common/interfaces/response.interface';
 
 @Injectable()
 export class AssistantInfoService {
-  private readonly logger = new Logger('AssistantInfoService');
-
   constructor(
     @InjectRepository(AssistantInfo)
     private readonly assistantInfoRepository: Repository<AssistantInfo>,

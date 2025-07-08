@@ -26,8 +26,11 @@ export class MedicalRecord {
   @Column('text', { name: 'body_temperature' })
   bodyTemperature?: string;
 
-  @Column('text', { name: 'blood_pressure' })
-  bloodPressure?: string;
+  @Column('jsonb', { name: 'blood_pressure', nullable: true })
+  bloodPressure?: {
+    systolic: number | null;
+    diastolic: number | null;
+  };
 
   @Column('text', { name: 'heart_rate' })
   heartRate?: string;

@@ -1,5 +1,25 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+class BloodPressureDto {
+  @ApiProperty({ required: false, nullable: true })
+  @IsOptional()
+  @IsNumber()
+  systolic: number | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  @IsOptional()
+  @IsNumber()
+  diastolic: number | null;
+}
 
 export class CreateMedicalRecordDto {
   @ApiProperty()
@@ -22,10 +42,11 @@ export class CreateMedicalRecordDto {
   @IsOptional()
   bodyTemperature: string;
 
-  @ApiProperty()
-  @IsString()
+  @ApiProperty({ required: false, type: () => BloodPressureDto, nullable: true })
   @IsOptional()
-  bloodPressure: string;
+  @ValidateNested()
+  @Type(() => BloodPressureDto)
+  bloodPressure?: BloodPressureDto;
 
   @ApiProperty()
   @IsString()

@@ -16,7 +16,7 @@ export class MedicalRecordController {
   constructor(private readonly medicalRecordService: MedicalRecordService) {}
 
   @Post()
-  create(@Body() createMedicalRecordDto: CreateMedicalRecordDto) {
+  create(@Body() createMedicalRecordDto: CreateMedicalRecordDto): Promise<{ message: string }> {
     return this.medicalRecordService.create(createMedicalRecordDto);
   }
 
