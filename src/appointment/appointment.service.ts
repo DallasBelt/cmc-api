@@ -30,38 +30,40 @@ export class AppointmentService {
     private readonly patientService: PatientService,
   ) {}
 
-  async create(createAppointmentDto: CreateAppointmentDto) {
+  async create(createAppointmentDto: CreateAppointmentDto): Promise<{ message: string }> {
     const { startTime, endTime, reason, patientId, medicId } = createAppointmentDto;
+
     const patient = await this.patientService.findOne(patientId);
-    const medic = await this.userRepository.findOne({
-      where: { id: medicId },
-    });
-    if (!medic || medic.role !== 'medic')
-      throw new NotFoundException('The user is not a medic or does not exist.');
+    const medic = await this.userRepository.findOne({ where: { id: medicId } });
+
+    if (!medic || medic.role !== 'medic') {
+      throw new NotFoundException('El usuario no es un médico válido.');
+    }
+
     const existingAppointment = await this.appointmentRepository.findOne({
       where: {
-        medic: medic,
+        medic,
         startTime: LessThan(endTime),
         endTime: MoreThan(startTime),
       },
     });
+
     if (existingAppointment) {
-      throw new ConflictException('There is already an appointment in this time slot.');
+      throw new ConflictException('Ya existe una cita en este intervalo de tiempo.');
     }
-    try {
-      const appointmentInfo = this.appointmentRepository.create({
-        date: new Date(),
-        startTime,
-        endTime,
-        reason,
-        patient,
-        medic,
-      });
-      await this.appointmentRepository.save(appointmentInfo);
-      return appointmentInfo;
-    } catch (error) {
-      this.handleExceptions(error);
-    }
+
+    const appointment = this.appointmentRepository.create({
+      date: new Date(),
+      startTime,
+      endTime,
+      reason,
+      patient,
+      medic,
+    });
+
+    await this.appointmentRepository.save(appointment);
+
+    return { message: 'Cita creada exitosamente.' };
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -79,52 +81,60 @@ export class AppointmentService {
     };
   }
 
-  async findOne(id: string) {
-    const findAppointment = await this.appointmentRepository.findOne({
+  async findOne(id: string): Promise<Appointment> {
+    const appointment = await this.appointmentRepository.findOne({
       where: { id },
       relations: ['patient', 'medic'],
     });
-    if (!findAppointment) throw new NotFoundException(`Appointment with id: ${id} not found`);
-    return findAppointment;
+
+    if (!appointment) {
+      throw new NotFoundException(`No se encontró la cita con id: ${id}`);
+    }
+
+    return appointment;
   }
 
-  async update(id: string, updateAppointmentDto: UpdateAppointmentDto) {
-    const { startTime, endTime, medicId } = updateAppointmentDto;
-    const findAppointment = await this.findOne(id);
+  async update(id: string, dto: UpdateAppointmentDto): Promise<{ message: string }> {
+    const { startTime, endTime, medicId } = dto;
+
+    const appointment = await this.findOne(id);
+
     if (medicId && (startTime || endTime)) {
-      const existingAppointment = await this.appointmentRepository.findOne({
+      const conflict = await this.appointmentRepository.findOne({
         where: {
-          medic: { id: medicId || findAppointment.medic.id },
-          startTime: LessThan(endTime || findAppointment.endTime),
-          endTime: MoreThan(startTime || findAppointment.startTime),
+          medic: { id: medicId || appointment.medic.id },
+          startTime: LessThan(endTime || appointment.endTime),
+          endTime: MoreThan(startTime || appointment.startTime),
           id: Not(id),
         },
       });
-      if (existingAppointment) {
-        throw new ConflictException('There is already an appointment in this time slot.');
+
+      if (conflict) {
+        throw new ConflictException('Ya existe una cita en este intervalo de tiempo.');
       }
     }
+
     const appointmentToUpdate = await this.appointmentRepository.preload({
-      id: findAppointment.id,
-      ...updateAppointmentDto,
+      id: appointment.id,
+      ...dto,
     });
-    if (!appointmentToUpdate) throw new NotFoundException('Appointment not found for update.');
+
+    if (!appointmentToUpdate) {
+      throw new NotFoundException('No se pudo actualizar la cita. No encontrada.');
+    }
+
     await this.appointmentRepository.save(appointmentToUpdate);
-    return this.findOne(id);
+    return { message: 'Cita actualizada exitosamente.' };
   }
 
-  async remove(id: string) {
-    const appointment = await this.appointmentRepository.findOne({
-      where: { id },
-    });
-    if (!appointment) throw new NotFoundException(`Appointment with id: ${id} not found`);
+  async remove(id: string): Promise<{ message: string }> {
+    const appointment = await this.appointmentRepository.findOne({ where: { id } });
+
+    if (!appointment) {
+      throw new NotFoundException(`No se encontró la cita con id: ${id}`);
+    }
+
     await this.appointmentRepository.remove(appointment);
-    return { message: `Appointment ${id} was deleted.` };
-  }
-
-  private handleExceptions(error: any): never {
-    if (error.code === '23505') throw new BadRequestException(error.detail);
-    this.logger.error(error);
-    throw new InternalServerErrorException('Unexpected error, check server logs');
+    return { message: `Cita con ID ${id} eliminada exitosamente.` };
   }
 }

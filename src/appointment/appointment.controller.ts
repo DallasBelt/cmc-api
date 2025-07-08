@@ -24,7 +24,7 @@ export class AppointmentController {
 
   @Auth(ValidRoles.Admin, ValidRoles.Medic, ValidRoles.Assistant)
   @Post()
-  create(@Body() createAppointmentDto: CreateAppointmentDto) {
+  create(@Body() createAppointmentDto: CreateAppointmentDto): Promise<{ message: string }> {
     return this.appointmentService.create(createAppointmentDto);
   }
 
@@ -45,7 +45,7 @@ export class AppointmentController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
-  ) {
+  ): Promise<{ message: string }> {
     return this.appointmentService.update(id, updateAppointmentDto);
   }
 
