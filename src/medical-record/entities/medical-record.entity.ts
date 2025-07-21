@@ -15,16 +15,16 @@ export class MedicalRecord {
   id: string;
 
   @Column('text')
+  symptoms?: string;
+
+  @Column('text')
   diagnostic?: string;
 
   @Column('text')
   treatment?: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   prescription?: string;
-
-  @Column('text', { name: 'body_temperature' })
-  bodyTemperature?: string;
 
   @Column('jsonb', { name: 'blood_pressure', nullable: true })
   bloodPressure?: {
@@ -32,29 +32,26 @@ export class MedicalRecord {
     diastolic: number | null;
   };
 
-  @Column('text', { name: 'heart_rate' })
-  heartRate?: string;
-
-  @Column('text', { name: 'respiratory_rate' })
-  respiratoryRate?: string;
-
-  @Column('text')
-  weight?: string;
-
-  @Column('text')
-  height?: string;
-
-  @Column('text')
-  symptoms?: string;
-
-  @Column('text')
-  observations?: string;
-
-  @Column('text', { name: 'oxygen_saturation' })
+  @Column('text', { name: 'oxygen_saturation', nullable: true })
   oxygenSaturation?: string;
 
-  @Column('text')
-  allergies?: string;
+  @Column('text', { name: 'body_temperature', nullable: true })
+  bodyTemperature?: string;
+
+  @Column('text', { name: 'heart_rate', nullable: true })
+  heartRate?: string;
+
+  @Column('text', { name: 'respiratory_rate', nullable: true })
+  respiratoryRate?: string;
+
+  @Column('text', { nullable: true })
+  weight?: string;
+
+  @Column('text', { nullable: true })
+  height?: string;
+
+  @Column('text', { nullable: true })
+  observations?: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

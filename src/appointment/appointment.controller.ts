@@ -16,7 +16,7 @@ import { ValidRoles } from 'src/auth/enums';
 
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dtos';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('appointment')
 export class AppointmentController {

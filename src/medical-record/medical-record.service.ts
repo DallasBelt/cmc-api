@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { MedicalRecord } from './entities/medical-record.entity';
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dtos';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PatientService } from '../patient/patient.service';
 
 @Injectable()
@@ -33,6 +33,29 @@ export class MedicalRecordService {
 
     return {
       message: 'Entrada creada exitosamente.',
+    };
+  }
+
+  async findByPatientId(patientId: string, paginationDto: PaginationDto) {
+    const { page, limit } = paginationDto;
+
+    const [records, total] = await this.medicalRecordRepository.findAndCount({
+      where: { patient: { id: patientId } },
+      relations: ['patient', 'patient.medic'],
+      order: { createdAt: 'DESC' },
+      take: limit,
+      skip: (page - 1) * limit,
+    });
+
+    if (!records.length) {
+      throw new NotFoundException('No se encontraron historias clínicas para este paciente.');
+    }
+
+    return {
+      data: records,
+      total,
+      page,
+      limit,
     };
   }
 

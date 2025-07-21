@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsEmail, IsIn, IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsDate, IsEmail, IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 import { IsValidDni } from '../decorators/dni-validator.decorator';
 import { TransformDate } from '../../common/transformers/date.transformer';
@@ -55,4 +55,19 @@ export class CreatePatientDto {
   @IsString()
   @IsNotEmpty()
   occupation: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  allergies?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  personalHistory?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  familyHistory?: string;
 }

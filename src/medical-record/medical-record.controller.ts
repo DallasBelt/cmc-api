@@ -6,7 +6,7 @@ import { MedicalRecordService } from './medical-record.service';
 
 import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 import { UpdateMedicalRecordDto } from './dto/update-medical-record.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dtos';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 import { ValidRoles } from 'src/auth/enums';
 
@@ -18,6 +18,14 @@ export class MedicalRecordController {
   @Post()
   create(@Body() createMedicalRecordDto: CreateMedicalRecordDto): Promise<{ message: string }> {
     return this.medicalRecordService.create(createMedicalRecordDto);
+  }
+
+  @Get('/patient/:patientId')
+  findByPatientId(
+    @Param('patientId', ParseUUIDPipe) patientId: string,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return this.medicalRecordService.findByPatientId(patientId, paginationDto);
   }
 
   @Get()

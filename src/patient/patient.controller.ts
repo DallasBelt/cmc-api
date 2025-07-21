@@ -16,7 +16,7 @@ import { PatientService } from './patient.service';
 import { User } from 'src/auth/entities/user.entity';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-import { PaginationDto } from '../common/dto/pagination.dtos';
+import { PaginationDto } from '../common/dto/pagination.dto';
 import { ValidRoles } from 'src/auth/enums';
 
 @Controller('patient')

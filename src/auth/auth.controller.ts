@@ -5,7 +5,7 @@ import { AuthService } from './auth.service';
 import { LoginDto, RoleDto, UpdatePasswordDto, UserDto } from './dto';
 import { Auth, GetUser } from './decorators';
 import { ValidRoles } from './enums';
-import { PaginationDto } from 'src/common/dto/pagination.dtos';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @ApiTags('auth')
 @Controller('auth')

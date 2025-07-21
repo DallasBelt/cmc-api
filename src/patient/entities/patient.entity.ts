@@ -45,6 +45,15 @@ export class Patient {
   @Column('text')
   occupation: string;
 
+  @Column('text', { nullable: true })
+  allergies?: string;
+
+  @Column('text', { name: 'personal_history', nullable: true })
+  personalHistory?: string;
+
+  @Column('text', { name: 'family_history', nullable: true })
+  familyHistory?: string;
+
   @Column('boolean', { default: false, name: 'is_deleted' })
   isDeleted: boolean;
 

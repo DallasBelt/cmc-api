@@ -16,7 +16,7 @@ import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity
 import { RoleDto, UserDto, LoginDto, UpdatePasswordDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { ValidRoles, UserStatus } from './enums';
-import { PaginationDto } from 'src/common/dto/pagination.dtos';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class AuthService {

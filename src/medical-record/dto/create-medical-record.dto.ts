@@ -25,6 +25,11 @@ export class CreateMedicalRecordDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
+  symptoms: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
   diagnostic: string;
 
   @ApiProperty()
@@ -37,16 +42,21 @@ export class CreateMedicalRecordDto {
   @IsOptional()
   prescription: string;
 
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  bodyTemperature: string;
-
   @ApiProperty({ required: false, type: () => BloodPressureDto, nullable: true })
   @IsOptional()
   @ValidateNested()
   @Type(() => BloodPressureDto)
   bloodPressure?: BloodPressureDto;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  oxygenSaturation?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  bodyTemperature: string;
 
   @ApiProperty()
   @IsString()
@@ -71,22 +81,7 @@ export class CreateMedicalRecordDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
-  symptoms: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
   observations: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  oxygenSaturation?: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  allergies?: string;
 
   @ApiProperty()
   @IsUUID()

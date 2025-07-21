@@ -16,7 +16,7 @@ import { PatientService } from 'src/patient/patient.service';
 
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dtos';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class AppointmentService {

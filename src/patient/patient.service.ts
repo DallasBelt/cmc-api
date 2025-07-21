@@ -14,7 +14,7 @@ import { AssistantInfo } from 'src/assistant-info/entities/assistant-info.entity
 
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-import { PaginationDto } from '../common/dto/pagination.dtos';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class PatientService {
